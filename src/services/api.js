@@ -2,7 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 // Use local API in development, remote in production
-const API_BASE_URL = "https://wowmart-h0ky.onrender.com/api";  // Production
+const API_BASE_URL = "https://wow-yx0e.onrender.com/api";  // Production
 
 const api = axios.create({
   baseURL: API_BASE_URL,
