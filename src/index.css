@@ -1,0 +1,322 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-transparent text-black font-sans;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Comfortaa', cursive;
+    font-weight: 600;
+  }
+  
+  /* Mobile-first touch targets */
+  button, a {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Smooth transitions for all interactive elements */
+  * {
+    @apply transition-colors duration-200;
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@layer components {
+
+
+
+  .bg-blob-green {
+    background: radial-gradient(
+      circle,
+      rgba(243, 223, 9, 0.6) 0%,
+      rgba(243, 235, 13, 0.35) 40%,
+      transparent 70%
+    );
+    filter: blur(50px);
+  }
+  
+  .btn-primary {
+    @apply bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2.5 px-5 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-sm sm:text-base relative overflow-hidden;
+  }
+  
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-white opacity-0 transition-opacity duration-300;
+  }
+  
+  .btn-primary:hover::before {
+    @apply opacity-20;
+  }
+  
+  .btn-primary:active::before {
+    @apply opacity-30;
+  }
+  
+  .btn-secondary {
+    @apply bg-black hover:bg-gray-800 text-white font-bold py-2.5 px-5 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-sm sm:text-base relative overflow-hidden;
+  }
+  
+  .btn-secondary::before {
+    content: '';
+    @apply absolute inset-0 bg-white opacity-0 transition-opacity duration-300;
+  }
+  
+  .btn-secondary:hover::before {
+    @apply opacity-10;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 sm:hover:-translate-y-2 active:scale-95 cursor-pointer;
+  }
+  
+  .card:hover {
+    @apply scale-[1.02];
+  }
+  
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Interactive input fields */
+  input, select, textarea {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400;
+  }
+  
+  /* Animated gradient background */
+  .gradient-animate {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+  
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  /* Pulse animation for important elements */
+  .pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Bounce animation */
+  .bounce-slow {
+    animation: bounce 2s infinite;
+  }
+  
+  /* Shake animation for errors */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  
+  .shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  /* Slide in from left */
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+  }
+  
+  /* Slide in from right */
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+  }
+  
+  /* Scale in animation */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* Checkmark animation */
+  @keyframes checkmark {
+    0% {
+      transform: scale(0) rotate(45deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2) rotate(45deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  /* Confetti fall animation */
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* Staggered fade in with delay */
+  .stagger-fade-in {
+    animation: fadeIn 0.6s ease-out backwards;
+  }
+  
+  /* Interactive link hover effect */
+  a:not(.btn-primary):not(.btn-secondary) {
+    @apply transition-all duration-200;
+  }
+  
+  /* Card hover effect enhancement */
+  .card:hover img {
+    @apply scale-110;
+  }
+  
+  /* Button press effect */
+  button:active, .btn-primary:active, .btn-secondary:active {
+    @apply transform scale-95;
+  }
+  
+  /* Banner Buy Now Button - No Border - Ultra Specific */
+  div.banner-buy-now-btn,
+  div[role="button"].banner-buy-now-btn,
+  div.banner-buy-now-btn.bg-yellow-400,
+  [role="button"].bg-yellow-400.banner-buy-now-btn {
+    border: 0 !important;
+    border-top: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    outline: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    -webkit-border: 0 !important;
+    -moz-border: 0 !important;
+  }
+  
+  div.banner-buy-now-btn:focus,
+  div.banner-buy-now-btn:active,
+  div.banner-buy-now-btn:hover,
+  div.banner-buy-now-btn:visited,
+  div.banner-buy-now-btn:focus-visible,
+  [role="button"].bg-yellow-400.banner-buy-now-btn:focus,
+  [role="button"].bg-yellow-400.banner-buy-now-btn:active,
+  [role="button"].bg-yellow-400.banner-buy-now-btn:hover {
+    border: 0 !important;
+    border-top: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    outline: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    -webkit-border: 0 !important;
+    -moz-border: 0 !important;
+  }
+  
+  /* Input focus glow */
+  input:focus, select:focus, textarea:focus {
+    @apply shadow-lg shadow-yellow-400/50;
+  }
+  
+  /* Smooth image loading */
+  img {
+    @apply transition-transform duration-300;
+  }
+  
+  /* Buy Now button special animation */
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.8), 0 0 60px rgba(239, 68, 68, 0.5);
+    }
+  }
+  
+  .get-it-now {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  /* Override min-height for announcement banner elements */
+  .announcement-banner button,
+  .announcement-banner a,
+  .announcement-banner button *,
+  .announcement-banner a * {
+    min-height: auto !important;
+    min-width: auto !important;
+    height: auto !important;
+  }
+}
