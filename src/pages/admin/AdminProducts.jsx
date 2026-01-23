@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../services/api'
+import cache from '../../utils/cache'
 
 function AdminProducts() {
   const [products, setProducts] = useState([])
@@ -205,10 +206,19 @@ function AdminProducts() {
 
       console.log('Sending product data:', productData)
 
+      let updatedProduct
       if (editingProduct) {
-        await api.put(`/admin/products/${editingProduct._id}`, productData)
+        const response = await api.put(`/admin/products/${editingProduct._id}`, productData)
+        updatedProduct = response.data
+        // Clear cache for this specific product
+        cache.delete(`product_${editingProduct._id}`)
+        // Also clear products list cache to refresh listings
+        cache.clear()
       } else {
-        await api.post('/admin/products', productData)
+        const response = await api.post('/admin/products', productData)
+        updatedProduct = response.data
+        // Clear products list cache
+        cache.clear()
       }
 
       setShowAddModal(false)
