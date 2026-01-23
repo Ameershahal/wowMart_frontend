@@ -109,7 +109,7 @@ function Policy() {
             <div className="space-y-4 text-gray-700">
               <div>
                 <h3 className="text-xl font-bold text-black mb-2">Return Eligibility</h3>
-                <p>Items must be returned within 30 days of delivery in their original condition, unopened, and with all original packaging and tags attached.</p>
+                <p>Items must be returned within 7 days of delivery in their original condition, unopened, and with all original packaging and tags attached.</p>
               </div>
 
               <div>
