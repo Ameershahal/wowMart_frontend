@@ -189,6 +189,19 @@ function AdminProducts() {
       // Combine existing images with newly uploaded ones
       const allImages = [...formData.images, ...newImageUrls]
 
+      // Ensure freeShipping and returnDays are properly set
+      const freeShippingValue = formData.freeShipping !== undefined && formData.freeShipping !== null 
+        ? Boolean(formData.freeShipping) 
+        : true;
+      const returnDaysValue = formData.returnDays ? parseInt(formData.returnDays) || 30 : 30;
+      
+      console.log('Form data before creating productData:', {
+        freeShipping: formData.freeShipping,
+        freeShippingType: typeof formData.freeShipping,
+        returnDays: formData.returnDays,
+        returnDaysType: typeof formData.returnDays
+      });
+      
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -200,12 +213,13 @@ function AdminProducts() {
         reviewCount: parseInt(formData.reviewCount) || 0,
         images: allImages,
         homePageSections: formData.homePageSections || [],
-        freeShipping: formData.freeShipping !== undefined ? Boolean(formData.freeShipping) : true,
-        returnDays: parseInt(formData.returnDays) || 30
+        freeShipping: freeShippingValue,
+        returnDays: returnDaysValue
       }
 
       console.log('Sending product data:', productData)
-      console.log('Form data freeShipping:', formData.freeShipping, 'returnDays:', formData.returnDays)
+      console.log('Product data freeShipping:', productData.freeShipping, 'type:', typeof productData.freeShipping)
+      console.log('Product data returnDays:', productData.returnDays, 'type:', typeof productData.returnDays)
 
       let updatedProduct
       if (editingProduct) {
@@ -242,8 +256,12 @@ function AdminProducts() {
   }
 
   const handleEdit = (product) => {
+    console.log('Editing product:', product)
+    console.log('Product freeShipping:', product.freeShipping, 'type:', typeof product.freeShipping)
+    console.log('Product returnDays:', product.returnDays, 'type:', typeof product.returnDays)
+    
     setEditingProduct(product)
-    setFormData({
+    const formDataToSet = {
       name: product.name || '',
       description: product.description || '',
       price: product.price?.toString() || '',
@@ -254,9 +272,11 @@ function AdminProducts() {
       rating: product.rating?.toString() || '0',
       reviewCount: product.reviewCount?.toString() || '0',
       homePageSections: product.homePageSections || [],
-      freeShipping: product.freeShipping !== undefined ? product.freeShipping : true,
-      returnDays: product.returnDays?.toString() || '30'
-    })
+      freeShipping: product.freeShipping !== undefined ? Boolean(product.freeShipping) : true,
+      returnDays: product.returnDays !== undefined ? product.returnDays.toString() : '30'
+    }
+    console.log('Setting form data:', formDataToSet)
+    setFormData(formDataToSet)
     setImageFiles([])
     setImagePreview([])
     setShowAddModal(true)
