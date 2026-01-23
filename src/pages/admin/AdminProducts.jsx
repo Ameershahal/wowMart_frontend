@@ -200,16 +200,19 @@ function AdminProducts() {
         reviewCount: parseInt(formData.reviewCount) || 0,
         images: allImages,
         homePageSections: formData.homePageSections || [],
-        freeShipping: formData.freeShipping,
+        freeShipping: formData.freeShipping !== undefined ? Boolean(formData.freeShipping) : true,
         returnDays: parseInt(formData.returnDays) || 30
       }
 
       console.log('Sending product data:', productData)
+      console.log('Form data freeShipping:', formData.freeShipping, 'returnDays:', formData.returnDays)
 
       let updatedProduct
       if (editingProduct) {
         const response = await api.put(`/admin/products/${editingProduct._id}`, productData)
         updatedProduct = response.data
+        console.log('Updated product response:', updatedProduct)
+        console.log('Updated product freeShipping:', updatedProduct.freeShipping, 'returnDays:', updatedProduct.returnDays)
         // Clear cache for this specific product
         cache.delete(`product_${editingProduct._id}`)
         // Also clear products list cache to refresh listings
