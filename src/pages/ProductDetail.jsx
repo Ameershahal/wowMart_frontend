@@ -312,7 +312,7 @@ function ProductDetail() {
             </div>
 
             {/* Product Details */}
-            <div className="py-6 space-y-4">
+            <div className="pt-6 space-y-4">
               {product.brand && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Brand</span>
@@ -323,7 +323,7 @@ function ProductDetail() {
 
             {/* Trust Badges */}
             {product.inStock && (
-              <div className="pt-4">
+              <div>
                 <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-600">
                   <div className="flex items-center gap-1.5">
                     <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
