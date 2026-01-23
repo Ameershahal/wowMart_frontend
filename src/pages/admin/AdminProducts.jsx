@@ -21,7 +21,9 @@ function AdminProducts() {
     images: [],
     rating: '0',
     reviewCount: '0',
-    homePageSections: []
+    homePageSections: [],
+    freeShipping: true,
+    returnDays: '30'
   })
   
   const availableSections = [
@@ -196,7 +198,9 @@ function AdminProducts() {
         rating: parseFloat(formData.rating) || 0,
         reviewCount: parseInt(formData.reviewCount) || 0,
         images: allImages,
-        homePageSections: formData.homePageSections || []
+        homePageSections: formData.homePageSections || [],
+        freeShipping: formData.freeShipping,
+        returnDays: parseInt(formData.returnDays) || 30
       }
 
       console.log('Sending product data:', productData)
@@ -214,7 +218,7 @@ function AdminProducts() {
       setFormData({
         name: '', description: '', price: '', originalPrice: '', category: '',
         stock: '0', images: [], rating: '0', reviewCount: '0',
-        homePageSections: []
+        homePageSections: [], freeShipping: true, returnDays: '30'
       })
       fetchProducts()
     } catch (error) {
@@ -236,7 +240,9 @@ function AdminProducts() {
       images: product.images || [],
       rating: product.rating?.toString() || '0',
       reviewCount: product.reviewCount?.toString() || '0',
-      homePageSections: product.homePageSections || []
+      homePageSections: product.homePageSections || [],
+      freeShipping: product.freeShipping !== undefined ? product.freeShipping : true,
+      returnDays: product.returnDays?.toString() || '30'
     })
     setImageFiles([])
     setImagePreview([])
@@ -274,7 +280,7 @@ function AdminProducts() {
             setFormData({
               name: '', description: '', price: '', originalPrice: '', category: '',
               stock: '0', images: [], rating: '0', reviewCount: '0',
-              homePageSections: []
+              homePageSections: [], freeShipping: true, returnDays: '30'
             })
             setShowAddModal(true)
           }}
@@ -463,6 +469,32 @@ function AdminProducts() {
                     className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-black mb-2">Return Days</label>
+                  <input
+                    type="number"
+                    name="returnDays"
+                    value={formData.returnDays}
+                    onChange={handleInputChange}
+                    min="0"
+                    className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Number of days customers can return this product</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="freeShipping"
+                    checked={formData.freeShipping}
+                    onChange={(e) => setFormData({ ...formData, freeShipping: e.target.checked })}
+                    className="rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
+                  />
+                  <span className="text-sm font-medium text-black">Free Shipping</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-6">Enable free shipping for this product</p>
               </div>
 
               <div>
