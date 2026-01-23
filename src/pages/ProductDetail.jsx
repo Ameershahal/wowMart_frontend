@@ -311,16 +311,6 @@ function ProductDetail() {
               </span>
             </div>
 
-            {/* Product Details */}
-            <div className="pt-6 space-y-4">
-              {product.brand && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Brand</span>
-                  <span className="text-sm font-medium text-black">{product.brand}</span>
-                </div>
-              )}
-            </div>
-
             {/* Trust Badges */}
             {product.inStock && (
               <div>
