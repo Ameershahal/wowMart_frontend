@@ -90,7 +90,7 @@ function BannerSlider({ banners = [] }) {
                 decoding="async"
               />
               {/* CTA Button - Each banner has its own button that slides with the image */}
-              <div className="absolute inset-0 flex items-center justify-center lg:items-end lg:justify-start  z-10 lg:left-20 bottom-20 pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center translate-y-6 md:translate-y-0 lg:items-end lg:justify-start z-10 lg:left-20 bottom-20 pointer-events-none">
                 <button
                   onClick={() => {
                     const linkUrl = banner.linkUrl || '/products'
@@ -101,7 +101,7 @@ function BannerSlider({ banners = [] }) {
                     }
                   }}
                   type="button"
-                  className="pointer-events-auto text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 uppercase tracking-wide text-sm md:text-base"
+                  className="pointer-events-auto mt-8 md:mt-0 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 uppercase tracking-wide text-sm md:text-base"
                   style={{
                     backgroundColor: banner.buttonColor || buttonColor,
                     border: 'none',
