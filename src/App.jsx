@@ -16,6 +16,7 @@ import MyOrders from './pages/MyOrders'
 import Profile from './pages/Profile'
 import Blog from './pages/Blog'
 import BlogDetail from './pages/BlogDetail'
+import Policy from './pages/Policy'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminProducts from './pages/admin/AdminProducts'
@@ -78,6 +79,7 @@ function App() {
         <Route path="/products/:id" element={<UserLayout><ProductDetail /></UserLayout>} />
         <Route path="/blog" element={<UserLayout><Blog /></UserLayout>} />
         <Route path="/blog/:slug" element={<UserLayout><BlogDetail /></UserLayout>} />
+        <Route path="/policy" element={<UserLayout><Policy /></UserLayout>} />
         <Route path="/cart" element={<UserLayout><Cart /></UserLayout>} />
         <Route path="/wishlist" element={<UserLayout><Wishlist /></UserLayout>} />
         <Route path="/order-success/:orderNumber" element={<UserLayout><OrderSuccess /></UserLayout>} />
