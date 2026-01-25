@@ -325,6 +325,10 @@ function AdminUsers() {
                         <span className="ml-2 text-black">{userDetails.user.email || 'N/A'}</span>
                       </div>
                       <div>
+                        <span className="font-medium text-gray-600">Phone:</span>
+                        <span className="ml-2 text-black">{userDetails.user.phone || userDetails.user.savedAddress?.phone || 'N/A'}</span>
+                      </div>
+                      <div>
                         <span className="font-medium text-gray-600">Account Status:</span>
                         <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           userDetails.user.isActive !== false
