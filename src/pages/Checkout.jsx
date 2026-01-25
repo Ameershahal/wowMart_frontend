@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCart } from '../services/cartService'
 import { createOrder } from '../services/orderService'
+import { createRazorpayOrder, verifyRazorpayPayment } from '../services/razorpayService'
 import { useButtonColor } from '../hooks/useButtonColor'
+import api from '../services/api'
 
 function Checkout() {
   const navigate = useNavigate()
@@ -99,11 +101,84 @@ function Checkout() {
     fetchCart()
   }, [navigate])
 
+  // Helper function to convert hex to RGB
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null
+  }
+
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
+  }
+
+  const getSessionId = () => {
+    return localStorage.getItem('sessionId')
+  }
+
+  const handleRazorpayPayment = async (customerInfo) => {
+    try {
+      const sessionId = getSessionId()
+      
+      // Create Razorpay order
+      const razorpayOrderData = await createRazorpayOrder(sessionId, customerInfo)
+      
+      // Initialize Razorpay checkout
+      const options = {
+        key: razorpayOrderData.key,
+        amount: razorpayOrderData.amount,
+        currency: razorpayOrderData.currency,
+        name: 'WowMart',
+        description: 'Order Payment',
+        order_id: razorpayOrderData.orderId,
+        handler: async function (response) {
+          try {
+            // Verify payment on backend
+            const order = await verifyRazorpayPayment({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              sessionId,
+              customerInfo
+            })
+            
+            // Store email in localStorage for My Orders page
+            localStorage.setItem('orderEmail', formData.email.trim().toLowerCase())
+            navigate(`/order-success/${order.orderNumber}`)
+          } catch (error) {
+            console.error('Payment verification error:', error)
+            alert('Payment verification failed. Please contact support with your payment ID.')
+            setSubmitting(false)
+          }
+        },
+        prefill: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          contact: customerInfo.phone
+        },
+        theme: {
+          color: '#FACC15' // Yellow color matching your brand
+        },
+        modal: {
+          ondismiss: function() {
+            setSubmitting(false)
+          }
+        }
+      }
+
+      const razorpay = new window.Razorpay(options)
+      razorpay.open()
+    } catch (error) {
+      console.error('Razorpay error:', error)
+      alert(error.response?.data?.message || 'Failed to initialize payment. Please try again.')
+      setSubmitting(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -113,7 +188,7 @@ function Checkout() {
     try {
       const customerInfo = {
         name: formData.name,
-        email: formData.email.trim().toLowerCase(), // Normalize email for consistent matching
+        email: formData.email.trim().toLowerCase(),
         phone: formData.phone,
         address: {
           street: formData.street,
@@ -125,13 +200,20 @@ function Checkout() {
         paymentMethod: paymentMethod
       }
 
+      // Handle Razorpay payment
+      if (paymentMethod === 'razorpay') {
+        await handleRazorpayPayment(customerInfo)
+        return // Don't set submitting to false here, it will be handled in the Razorpay handler
+      }
+
+      // Handle other payment methods (card, cod, bank)
       const order = await createOrder(customerInfo)
-      // Store email in localStorage for My Orders page (normalized)
+      // Store email in localStorage for My Orders page
       localStorage.setItem('orderEmail', formData.email.trim().toLowerCase())
       navigate(`/order-success/${order.orderNumber}`)
     } catch (error) {
       console.error('Error creating order:', error)
-      alert('Failed to place order. Please try again.')
+      alert(error.response?.data?.message || 'Failed to place order. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -453,8 +535,11 @@ function Checkout() {
 
                 {paymentMethod === 'razorpay' && (
                   <div className="mt-6 p-5 bg-indigo-50 rounded-lg border-2 border-indigo-200">
-                    <p className="text-sm text-gray-700">
-                      You will be redirected to Razorpay to complete your payment securely. Supports UPI, Cards, Wallets, and Net Banking.
+                    <p className="text-sm text-gray-700 mb-2">
+                      <strong>Secure Payment via Razorpay</strong>
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      You will be redirected to Razorpay's secure payment gateway. Supports UPI, Credit/Debit Cards, Wallets, and Net Banking.
                     </p>
                   </div>
                 )}
