@@ -607,16 +607,11 @@ function Home() {
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 mb-4 md:mb-6 max-w-2xl mx-auto px-2">
             Join <span className="text-yellow-400 font-bold">{Math.floor(Math.random() * 5000) + 10000}+</span> happy kids and parents who trust WowMart!
           </p>
-          <div className="bg-yellow-400/10 rounded-lg p-3 mb-6 max-w-xl mx-auto border border-yellow-400/20">
-            <p className="text-gray-800 font-bold text-sm sm:text-base">
-              FREE Shipping over $50! Flash Sale ends soon!
-            </p>
-          </div>
           <Link to="/products" className="btn-primary text-sm sm:text-base md:text-lg px-6 py-3 md:px-8 md:py-4 inline-block bg-yellow-400 hover:bg-yellow-500 transform hover:scale-110">
             Let's Shop! {Math.floor(Math.random() * 100) + 200} kids shopping now!
           </Link>
         </div>
-      </section>
+      </section> 
     </div>
   )
 }
