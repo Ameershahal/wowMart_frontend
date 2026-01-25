@@ -99,25 +99,32 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-8 px-4 sm:py-12 md:py-16">
       <div className="container mx-auto max-w-md">
-        {/* Header */}
+        {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-black mb-2">
-            Create Account
-          </h1>
-          <p className="text-gray-600">
-            Join WowMart and start shopping
-          </p>
+          <Link to="/" className="inline-block mb-6">
+            <h2 className="text-2xl sm:text-3xl font-black text-black">WOWMART</h2>
+          </Link>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 sm:p-8">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl sm:text-3xl font-black text-black mb-2">
+              Create Account
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              Join WowMart and start shopping today
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Full Name */}
             <div>
-              <label htmlFor="fullName" className="block font-bold mb-2 text-black">
+              <label htmlFor="fullName" className="block font-semibold mb-2 text-sm text-gray-700">
                 Full Name
               </label>
               <input
@@ -129,14 +136,14 @@ function Signup() {
                 required
                 autoComplete="name"
                 placeholder="Enter your full name"
-                className="w-full px-4 py-3 rounded-xl border-2 border-black focus:outline-none focus:ring-4 focus:ring-yellow-400/50 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm bg-white"
                 disabled={loading}
               />
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block font-bold mb-2 text-black">
+              <label htmlFor="email" className="block font-semibold mb-2 text-sm text-gray-700">
                 Email Address
               </label>
               <input
@@ -148,14 +155,14 @@ function Signup() {
                 required
                 autoComplete="email"
                 placeholder="your.email@example.com"
-                className="w-full px-4 py-3 rounded-xl border-2 border-black focus:outline-none focus:ring-4 focus:ring-yellow-400/50 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm bg-white"
                 disabled={loading}
               />
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block font-bold mb-2 text-black">
+              <label htmlFor="password" className="block font-semibold mb-2 text-sm text-gray-700">
                 Password
               </label>
               <input
@@ -167,17 +174,17 @@ function Signup() {
                 required
                 autoComplete="new-password"
                 placeholder="Create a strong password"
-                className="w-full px-4 py-3 rounded-xl border-2 border-black focus:outline-none focus:ring-4 focus:ring-yellow-400/50 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm bg-white"
                 disabled={loading}
               />
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs text-gray-500 mt-1.5">
                 Must be at least 6 characters
               </p>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block font-bold mb-2 text-black">
+              <label htmlFor="confirmPassword" className="block font-semibold mb-2 text-sm text-gray-700">
                 Confirm Password
               </label>
               <input
@@ -189,15 +196,18 @@ function Signup() {
                 required
                 autoComplete="new-password"
                 placeholder="Re-enter your password"
-                className="w-full px-4 py-3 rounded-xl border-2 border-black focus:outline-none focus:ring-4 focus:ring-yellow-400/50 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm bg-white"
                 disabled={loading}
               />
             </div>
 
             {/* Error */}
             {error && (
-              <div className="bg-red-50 border border-red-300 text-red-700 px-3 py-2 rounded text-sm">
-                {error}
+              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded text-sm flex items-start gap-2">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span>{error}</span>
               </div>
             )}
 
@@ -205,7 +215,7 @@ function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-yellow-400 text-black py-3 rounded-lg font-semibold border border-black hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full bg-yellow-400 text-black py-3 rounded-lg font-semibold hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
             >
               {loading ? (
                 <>
@@ -222,13 +232,13 @@ function Signup() {
           </form>
 
           {/* Login */}
-          <div className="text-center mt-6">
-            <p className="text-sm text-gray-600 mb-2">
+          <div className="text-center mt-6 pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-600 mb-3">
               Already have an account?
             </p>
             <Link
               to="/login"
-              className="inline-block bg-black text-yellow-400 px-4 py-2 rounded-lg font-semibold border"
+              className="inline-block w-full bg-black text-yellow-400 px-4 py-3 rounded-lg font-semibold hover:bg-gray-900 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               Login Here
             </Link>
