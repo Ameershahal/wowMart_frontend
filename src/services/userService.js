@@ -20,3 +20,17 @@ export const loginService = (payload) => {
 export const forgotPasswordService = (email) => {
   return api.post("/user/forgot-password", { email });
 };
+
+/**
+ * Save Address API
+ */
+export const saveAddressService = (addressData) => {
+  return api.post("/user/save-address", addressData);
+};
+
+/**
+ * Get Address API
+ */
+export const getAddressService = () => {
+  return api.get("/user/address");
+};

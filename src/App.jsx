@@ -26,6 +26,7 @@ import AdminBanners from './pages/admin/AdminBanners'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminBlogs from './pages/admin/AdminBlogs'
 import AdminSettings from './pages/admin/AdminSettings'
+import AdminUsers from './pages/admin/AdminUsers'
 import AdminLayout from './components/admin/AdminLayout'
 import AdminRoute from './components/admin/AdminRoute'
 import AdminRedirect from './components/admin/AdminRedirect'
@@ -198,6 +199,16 @@ function App() {
             <AdminRoute>
               <AdminLayout>
                 <AdminBlogs />
+              </AdminLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <AdminLayout>
+                <AdminUsers />
               </AdminLayout>
             </AdminRoute>
           }

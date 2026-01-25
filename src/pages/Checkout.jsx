@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getCart } from '../services/cartService'
 import { createOrder } from '../services/orderService'
 import { createRazorpayOrder, verifyRazorpayPayment } from '../services/razorpayService'
+import { saveAddressService, getAddressService } from '../services/userService'
 import { useButtonColor } from '../hooks/useButtonColor'
 import api from '../services/api'
 
@@ -23,6 +24,7 @@ function Checkout() {
     country: 'United States'
   })
   const [paymentMethod, setPaymentMethod] = useState('card')
+  const [saveAddress, setSaveAddress] = useState(true)
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '',
     expiryDate: '',
@@ -76,6 +78,52 @@ function Checkout() {
     })
   }
 
+  // Load saved address on component mount
+  useEffect(() => {
+    const loadSavedAddress = async () => {
+      try {
+        // First try to load from localStorage (works for all users)
+        const savedAddressLocal = localStorage.getItem('savedShippingAddress')
+        if (savedAddressLocal) {
+          const address = JSON.parse(savedAddressLocal)
+          setFormData(prev => ({
+            ...prev,
+            ...address
+          }))
+        }
+
+        // If user is logged in, try to load from API (overrides localStorage)
+        const token = localStorage.getItem('token')
+        if (token) {
+          try {
+            const response = await getAddressService()
+            if (response.data && response.data.savedAddress) {
+              const address = response.data.savedAddress
+              setFormData(prev => ({
+                ...prev,
+                name: address.name || prev.name,
+                email: response.data.user?.email || prev.email,
+                phone: address.phone || prev.phone,
+                street: address.street || prev.street,
+                city: address.city || prev.city,
+                state: address.state || prev.state,
+                zipCode: address.zipCode || prev.zipCode,
+                country: address.country || prev.country
+              }))
+            }
+          } catch (error) {
+            // If API call fails, just use localStorage data
+            console.log('Could not load address from server, using localStorage')
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved address:', error)
+      }
+    }
+
+    loadSavedAddress()
+  }, [])
+
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -124,6 +172,41 @@ function Checkout() {
 
   const handleRazorpayPayment = async (customerInfo) => {
     try {
+      // Save address if checkbox is checked (before payment processing)
+      if (saveAddress) {
+        // Always save to localStorage (works for all users)
+        const addressToSave = {
+          name: formData.name,
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone,
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        }
+        localStorage.setItem('savedShippingAddress', JSON.stringify(addressToSave))
+
+        // If user is logged in, also save to user profile
+        const token = localStorage.getItem('token')
+        if (token) {
+          try {
+            await saveAddressService({
+              name: formData.name,
+              phone: formData.phone,
+              street: formData.street,
+              city: formData.city,
+              state: formData.state,
+              zipCode: formData.zipCode,
+              country: formData.country
+            })
+          } catch (error) {
+            // If saving to profile fails, at least localStorage is saved
+            console.error('Failed to save address to profile:', error)
+          }
+        }
+      }
+
       const sessionId = getSessionId()
       
       // Create Razorpay order
@@ -198,6 +281,41 @@ function Checkout() {
           country: formData.country
         },
         paymentMethod: paymentMethod
+      }
+
+      // Save address if checkbox is checked (before payment processing)
+      if (saveAddress) {
+        // Always save to localStorage (works for all users)
+        const addressToSave = {
+          name: formData.name,
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone,
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        }
+        localStorage.setItem('savedShippingAddress', JSON.stringify(addressToSave))
+
+        // If user is logged in, also save to user profile
+        const token = localStorage.getItem('token')
+        if (token) {
+          try {
+            await saveAddressService({
+              name: formData.name,
+              phone: formData.phone,
+              street: formData.street,
+              city: formData.city,
+              state: formData.state,
+              zipCode: formData.zipCode,
+              country: formData.country
+            })
+          } catch (error) {
+            // If saving to profile fails, at least localStorage is saved
+            console.error('Failed to save address to profile:', error)
+          }
+        }
       }
 
       // Handle Razorpay payment
@@ -361,6 +479,19 @@ function Checkout() {
                       required
                       className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition-all duration-200 hover:border-yellow-300"
                     />
+                  </div>
+                  <div className="pt-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={saveAddress}
+                        onChange={(e) => setSaveAddress(e.target.checked)}
+                        className="w-4 h-4 text-yellow-400 border-gray-300 rounded focus:ring-yellow-400 focus:ring-2"
+                      />
+                      <span className="text-sm text-gray-700 font-medium">
+                        Save this address for future orders
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>
