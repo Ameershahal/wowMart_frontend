@@ -89,10 +89,15 @@ function Signup() {
         }
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 
-                          err.message || 
-                          "Signup failed. Please try again.";
-      setError(errorMessage);
+      // Handle duplicate email/user exists error
+      if (err.response?.status === 409) {
+        setError("User already exists with this email. Please login instead.");
+      } else {
+        const errorMessage = err.response?.data?.message || 
+                            err.message || 
+                            "Signup failed. Please try again.";
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
