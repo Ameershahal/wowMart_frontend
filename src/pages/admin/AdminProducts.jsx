@@ -24,7 +24,8 @@ function AdminProducts() {
     reviewCount: '0',
     homePageSections: [],
     freeShipping: true,
-    returnDays: '30'
+    returnDays: '30',
+    shippingCharge: '0'
   })
   
   const availableSections = [
@@ -194,12 +195,14 @@ function AdminProducts() {
         ? Boolean(formData.freeShipping) 
         : true;
       const returnDaysValue = formData.returnDays ? parseInt(formData.returnDays) || 30 : 30;
+      const shippingChargeValue = formData.shippingCharge ? parseFloat(formData.shippingCharge) || 0 : 0;
       
       console.log('Form data before creating productData:', {
         freeShipping: formData.freeShipping,
         freeShippingType: typeof formData.freeShipping,
         returnDays: formData.returnDays,
-        returnDaysType: typeof formData.returnDays
+        returnDaysType: typeof formData.returnDays,
+        shippingCharge: formData.shippingCharge
       });
       
       const productData = {
@@ -214,7 +217,8 @@ function AdminProducts() {
         images: allImages,
         homePageSections: formData.homePageSections || [],
         freeShipping: freeShippingValue,
-        returnDays: returnDaysValue
+        returnDays: returnDaysValue,
+        shippingCharge: shippingChargeValue
       }
 
       console.log('Sending product data:', productData)
@@ -245,7 +249,7 @@ function AdminProducts() {
       setFormData({
         name: '', description: '', price: '', originalPrice: '', category: '',
         stock: '0', images: [], rating: '0', reviewCount: '0',
-        homePageSections: [], freeShipping: true, returnDays: '30'
+        homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0'
       })
       fetchProducts()
     } catch (error) {
@@ -273,7 +277,8 @@ function AdminProducts() {
       reviewCount: product.reviewCount?.toString() || '0',
       homePageSections: product.homePageSections || [],
       freeShipping: product.freeShipping !== undefined ? Boolean(product.freeShipping) : true,
-      returnDays: product.returnDays !== undefined ? product.returnDays.toString() : '30'
+      returnDays: product.returnDays !== undefined ? product.returnDays.toString() : '30',
+      shippingCharge: product.shippingCharge !== undefined ? product.shippingCharge.toString() : '0'
     }
     console.log('Setting form data:', formDataToSet)
     setFormData(formDataToSet)
@@ -313,7 +318,7 @@ function AdminProducts() {
             setFormData({
               name: '', description: '', price: '', originalPrice: '', category: '',
               stock: '0', images: [], rating: '0', reviewCount: '0',
-              homePageSections: [], freeShipping: true, returnDays: '30'
+              homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0'
             })
             setShowAddModal(true)
           }}
@@ -514,6 +519,19 @@ function AdminProducts() {
                   />
                   <p className="text-xs text-gray-500 mt-1">Number of days customers can return this product</p>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-black mb-2">Shipping Charge (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="shippingCharge"
+                    value={formData.shippingCharge}
+                    onChange={handleInputChange}
+                    min="0"
+                    className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Shipping charge for this product (₹0 for free shipping)</p>
+                </div>
               </div>
 
               <div>
@@ -527,7 +545,7 @@ function AdminProducts() {
                   />
                   <span className="text-sm font-medium text-black">Free Shipping</span>
                 </label>
-                <p className="text-xs text-gray-500 mt-1 ml-6">Enable free shipping for this product</p>
+                <p className="text-xs text-gray-500 mt-1 ml-6">Enable free shipping for this product (overrides shipping charge)</p>
               </div>
 
               <div>
