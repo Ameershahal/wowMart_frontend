@@ -12,6 +12,19 @@ function AdminProducts() {
   const [imageFiles, setImageFiles] = useState([])
   const [imagePreview, setImagePreview] = useState([])
   const [uploadingImages, setUploadingImages] = useState(false)
+  // Section mapping: display name -> filter identifier
+  const [sectionMapping, setSectionMapping] = useState({
+    'Featured Products': 'Featured Products',
+    'Trending Toys': 'Trending Toys',
+    'Trending Gadgets': 'Trending Gadgets',
+    'Trending Building Sets': 'Trending Building Sets'
+  })
+  const [availableSections, setAvailableSections] = useState([
+    'Featured Products',
+    'Trending Toys',
+    'Trending Gadgets',
+    'Trending Building Sets'
+  ])
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -27,18 +40,47 @@ function AdminProducts() {
     returnDays: '30',
     shippingCharge: '0'
   })
-  
-  const availableSections = [
-    'Featured Products',
-    'Trending Toys',
-    'Trending Gadgets',
-    'Trending Building Sets'
-  ]
 
   useEffect(() => {
     fetchProducts()
     fetchCategories()
+    fetchSectionNames()
   }, [])
+
+  const fetchSectionNames = async () => {
+    try {
+      const response = await api.get('/admin/settings/homepage-sections')
+      if (response.data && response.data.sections) {
+        // Get the actual section display names from homepage settings
+        // These are the exact names shown on the homepage
+        const sections = response.data.sections
+        const featuredDisplay = sections.featuredProducts || 'Featured Products'
+        const toysDisplay = sections.trendingToys || 'Trending Toys'
+        const gadgetsDisplay = sections.trendingGadgets || 'Trending Gadgets'
+        const buildingSetsDisplay = sections.trendingBuildingSets || 'Trending Building Sets'
+        
+        // Set display names (what admin sees)
+        setAvailableSections([
+          featuredDisplay,
+          toysDisplay,
+          gadgetsDisplay,
+          buildingSetsDisplay
+        ])
+        
+        // Create mapping: display name -> filter identifier (used for backend)
+        // The filter identifiers are always the standard names
+        setSectionMapping({
+          [featuredDisplay]: 'Featured Products',
+          [toysDisplay]: 'Trending Toys',
+          [gadgetsDisplay]: 'Trending Gadgets',
+          [buildingSetsDisplay]: 'Trending Building Sets'
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching section names:', error)
+      // Keep default sections if API fails
+    }
+  }
 
   const fetchProducts = async () => {
     try {
@@ -205,6 +247,11 @@ function AdminProducts() {
         shippingCharge: formData.shippingCharge
       });
       
+      // Map display section names to filter identifiers for backend
+      const mappedSections = formData.homePageSections.map(displayName => 
+        sectionMapping[displayName] || displayName
+      )
+      
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -215,7 +262,7 @@ function AdminProducts() {
         rating: parseFloat(formData.rating) || 0,
         reviewCount: parseInt(formData.reviewCount) || 0,
         images: allImages,
-        homePageSections: formData.homePageSections || [],
+        homePageSections: mappedSections,
         freeShipping: freeShippingValue,
         returnDays: returnDaysValue,
         shippingCharge: shippingChargeValue
@@ -265,6 +312,15 @@ function AdminProducts() {
     console.log('Product returnDays:', product.returnDays, 'type:', typeof product.returnDays)
     
     setEditingProduct(product)
+    
+    // Map filter identifiers back to display names for editing
+    const reverseMapping = Object.fromEntries(
+      Object.entries(sectionMapping).map(([display, filter]) => [filter, display])
+    )
+    const displaySections = (product.homePageSections || []).map(filterName => 
+      reverseMapping[filterName] || filterName
+    )
+    
     const formDataToSet = {
       name: product.name || '',
       description: product.description || '',
@@ -275,7 +331,7 @@ function AdminProducts() {
       images: product.images || [],
       rating: product.rating?.toString() || '0',
       reviewCount: product.reviewCount?.toString() || '0',
-      homePageSections: product.homePageSections || [],
+      homePageSections: displaySections,
       freeShipping: product.freeShipping !== undefined ? Boolean(product.freeShipping) : true,
       returnDays: product.returnDays !== undefined ? product.returnDays.toString() : '30',
       shippingCharge: product.shippingCharge !== undefined ? product.shippingCharge.toString() : '0'
