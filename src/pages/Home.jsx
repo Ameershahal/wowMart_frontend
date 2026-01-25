@@ -384,41 +384,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-8 md:py-16 bg-transparent">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
-            <div className="text-center bg-blue-50/20 rounded-lg p-6">
-              <div className="bg-yellow-400 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
-                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-black mb-1 md:mb-2">Safe & Quality</h3>
-              <p className="text-sm sm:text-base text-gray-600">Tested and super safe!</p>
-            </div>
-            <div className="text-center bg-green-50/20 rounded-lg p-6">
-              <div className="bg-yellow-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-black mb-2">Fast Shipping</h3>
-              <p className="text-gray-600">Super quick delivery!</p>
-            </div>
-            <div className="text-center bg-purple-50/20 rounded-lg p-6">
-              <div className="bg-yellow-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-black mb-2">Best Prices</h3>
-              <p className="text-gray-600">Awesome deals you'll love!</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Featured Products */}
       <section className="py-8 md:py-16 bg-transparent">
         <div className="container mx-auto px-4">
