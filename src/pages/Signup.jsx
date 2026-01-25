@@ -6,6 +6,7 @@ function Signup() {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -43,6 +44,16 @@ function Signup() {
       return false;
     }
 
+    if (!formData.phone.trim()) {
+      setError("Phone number is required");
+      return false;
+    }
+
+    if (formData.phone.trim().length < 10) {
+      setError("Phone number must be at least 10 digits");
+      return false;
+    }
+
     if (!formData.password) {
       setError("Password is required");
       return false;
@@ -75,6 +86,7 @@ function Signup() {
       const res = await signupService({
         fullName: formData.fullName.trim(),
         email: formData.email.toLowerCase().trim(),
+        phone: formData.phone.trim(),
         password: formData.password,
         confirmPassword: formData.confirmPassword,
       });
@@ -163,6 +175,28 @@ function Signup() {
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm bg-white"
                 disabled={loading}
               />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label htmlFor="phone" className="block font-semibold mb-2 text-sm text-gray-700">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                autoComplete="tel"
+                placeholder="Enter your phone number"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm bg-white"
+                disabled={loading}
+              />
+              <p className="text-xs text-gray-500 mt-1.5">
+                Include country code (e.g., +91 1234567890)
+              </p>
             </div>
 
             {/* Password */}
