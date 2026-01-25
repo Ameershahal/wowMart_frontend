@@ -30,9 +30,6 @@ function AdminSettings() {
   const [announcementMessage, setAnnouncementMessage] = useState('')
   const [videosMessage, setVideosMessage] = useState('')
   const [videos, setVideos] = useState([])
-  const [deleteConfirmText, setDeleteConfirmText] = useState('')
-  const [deletingAllData, setDeletingAllData] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     fetchButtonColor()
@@ -724,111 +721,6 @@ function AdminSettings() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Danger Zone - Delete All Data */}
-        <div className="bg-white rounded-xl shadow-sm border-2 border-red-200 p-6 md:p-8 mt-8">
-          <div className="mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-red-600 mb-2">⚠️ Danger Zone</h2>
-            <p className="text-gray-600">Permanently delete all data from the website. This action cannot be undone!</p>
-          </div>
-
-          {!showDeleteConfirm ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-red-800 mb-4">Delete All Data</h3>
-              <p className="text-sm text-red-700 mb-4">
-                This will permanently delete:
-              </p>
-              <ul className="list-disc list-inside text-sm text-red-700 mb-6 space-y-1">
-                <li>All Products</li>
-                <li>All Users (except admin accounts)</li>
-                <li>All Orders</li>
-                <li>All Carts</li>
-                <li>All Banners</li>
-                <li>All Categories</li>
-                <li>All Blogs</li>
-                <li>All Reviews</li>
-                <li>All Wishlists</li>
-                <li>All Announcements</li>
-              </ul>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                Delete All Data
-              </button>
-            </div>
-          ) : (
-            <div className="bg-red-50 border-2 border-red-400 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-red-800 mb-4">⚠️ Final Confirmation Required</h3>
-              <p className="text-sm text-red-700 mb-4">
-                This action is <strong>IRREVERSIBLE</strong>. All data will be permanently deleted.
-              </p>
-              <p className="text-sm text-red-700 mb-4 font-semibold">
-                Type <span className="bg-red-200 px-2 py-1 rounded">DELETE ALL</span> to confirm:
-              </p>
-              <input
-                type="text"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder="Type DELETE ALL to confirm"
-                className="w-full px-4 py-3 rounded-lg border-2 border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 mb-4"
-              />
-              <div className="flex gap-4">
-                <button
-                  onClick={async () => {
-                    if (deleteConfirmText !== 'DELETE ALL') {
-                      alert('Please type "DELETE ALL" exactly to confirm')
-                      return
-                    }
-
-                    if (!window.confirm('Are you absolutely sure? This will delete ALL data and cannot be undone!')) {
-                      return
-                    }
-
-                    setDeletingAllData(true)
-                    try {
-                      await api.delete('/admin/delete-all-data')
-                      alert('All data has been deleted successfully!')
-                      setShowDeleteConfirm(false)
-                      setDeleteConfirmText('')
-                      // Optionally redirect or reload
-                      window.location.reload()
-                    } catch (error) {
-                      console.error('Error deleting all data:', error)
-                      alert(error.response?.data?.message || 'Error deleting all data')
-                    } finally {
-                      setDeletingAllData(false)
-                    }
-                  }}
-                  disabled={deletingAllData || deleteConfirmText !== 'DELETE ALL'}
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {deletingAllData ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Deleting...
-                    </>
-                  ) : (
-                    'Confirm Delete All Data'
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDeleteConfirm(false)
-                    setDeleteConfirmText('')
-                  }}
-                  disabled={deletingAllData}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
