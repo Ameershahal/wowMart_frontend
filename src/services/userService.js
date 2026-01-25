@@ -1,17 +1,22 @@
-import axios from "axios";
-
-const BASE_URL = "  /api"; 
+import api from "./api";
 
 /**
  * Signup API
  */
 export const signupService = (payload) => {
-  return axios.post(`${BASE_URL}/user/sign-up`, payload);
+  return api.post("/user/sign-up", payload);
 };
 
 /**
  * Login API
  */
 export const loginService = (payload) => {
-  return axios.post(`${BASE_URL}/user/login`, payload);
+  return api.post("/user/login", payload);
+};
+
+/**
+ * Forgot Password API
+ */
+export const forgotPasswordService = (email) => {
+  return api.post("/user/forgot-password", { email });
 };

@@ -15,7 +15,7 @@ function Login() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value.trim(),
     });
     setError("");
   };
@@ -23,22 +23,41 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    
+    // Client-side validation
+    if (!formData.email || !formData.password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await loginService(formData);
+      const res = await loginService({
+        email: formData.email.toLowerCase().trim(),
+        password: formData.password,
+      });
 
-      console.log(res.data);
-      
-      // ✅ Store user info in localStorage
-   localStorage.setItem("token", res.data.token);
-   localStorage.setItem("user", JSON.stringify(res.data.user));
-   
-      navigate("/");
+      if (res.data && res.data.token && res.data.user) {
+        // Store user info in localStorage
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        
+        // Navigate to home page
+        navigate("/");
+      } else {
+        setError("Invalid response from server. Please try again.");
+      }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Try again."
-      );
+      const errorMessage = err.response?.data?.message || 
+                          err.message || 
+                          "Login failed. Please check your credentials and try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -64,33 +83,39 @@ function Login() {
 
             {/* Email */}
             <div>
-              <label className="block font-semibold mb-1.5 text-sm">
+              <label htmlFor="email" className="block font-semibold mb-1.5 text-sm text-black">
                 Email Address
               </label>
               <input
                 type="email"
+                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
+                autoComplete="email"
                 placeholder="your.email@example.com"
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow-400"
+                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
+                disabled={loading}
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block font-semibold mb-1.5 text-sm">
+              <label htmlFor="password" className="block font-semibold mb-1.5 text-sm text-black">
                 Password
               </label>
               <input
                 type="password"
+                id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 required
+                autoComplete="current-password"
                 placeholder="Enter your password"
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow-400"
+                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
+                disabled={loading}
               />
             </div>
 
@@ -115,9 +140,19 @@ function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-yellow-400 text-black py-2.5 rounded-lg font-semibold border border-black hover:bg-yellow-500 disabled:opacity-50"
+              className="w-full bg-yellow-400 text-black py-2.5 rounded-lg font-semibold border border-black hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Logging in...
+                </>
+              ) : (
+                "Login"
+              )}
             </button>
           </form>
 
