@@ -16,14 +16,12 @@ function AdminProducts() {
   const [sectionMapping, setSectionMapping] = useState({
     'Featured Products': 'Featured Products',
     'Trending Toys': 'Trending Toys',
-    'Trending Gadgets': 'Trending Gadgets',
-    'Trending Building Sets': 'Trending Building Sets'
+    'Trending Gadgets': 'Trending Gadgets'
   })
   const [availableSections, setAvailableSections] = useState([
     'Featured Products',
     'Trending Toys',
-    'Trending Gadgets',
-    'Trending Building Sets'
+    'Trending Gadgets'
   ])
   const [formData, setFormData] = useState({
     name: '',
@@ -57,14 +55,12 @@ function AdminProducts() {
         const featuredDisplay = sections.featuredProducts || 'Featured Products'
         const toysDisplay = sections.trendingToys || 'Trending Toys'
         const gadgetsDisplay = sections.trendingGadgets || 'Trending Gadgets'
-        const buildingSetsDisplay = sections.trendingBuildingSets || 'Trending Building Sets'
         
         // Set display names (what admin sees)
         setAvailableSections([
           featuredDisplay,
           toysDisplay,
-          gadgetsDisplay,
-          buildingSetsDisplay
+          gadgetsDisplay
         ])
         
         // Create mapping: display name -> filter identifier (used for backend)
@@ -72,8 +68,7 @@ function AdminProducts() {
         setSectionMapping({
           [featuredDisplay]: 'Featured Products',
           [toysDisplay]: 'Trending Toys',
-          [gadgetsDisplay]: 'Trending Gadgets',
-          [buildingSetsDisplay]: 'Trending Building Sets'
+          [gadgetsDisplay]: 'Trending Gadgets'
         })
       }
     } catch (error) {
