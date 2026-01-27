@@ -5,7 +5,7 @@ function FloatingWhatsApp() {
 
   return (
     <a
-      href="https://wa.me/1234567890"
+      href="https://wa.me/918943220040"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 group"
