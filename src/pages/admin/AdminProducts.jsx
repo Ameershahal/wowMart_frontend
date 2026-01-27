@@ -14,12 +14,10 @@ function AdminProducts() {
   const [uploadingImages, setUploadingImages] = useState(false)
   // Section mapping: display name -> filter identifier
   const [sectionMapping, setSectionMapping] = useState({
-    'Featured Products': 'Featured Products',
-    'Trending Gadgets': 'Trending Gadgets'
+    'Featured Products': 'Featured Products'
   })
   const [availableSections, setAvailableSections] = useState([
-    'Featured Products',
-    'Trending Gadgets'
+    'Featured Products'
   ])
   const [formData, setFormData] = useState({
     name: '',
@@ -51,19 +49,16 @@ function AdminProducts() {
         // These are the exact names shown on the homepage
         const sections = response.data.sections
         const featuredDisplay = sections.featuredProducts || 'Featured Products'
-        const gadgetsDisplay = sections.trendingGadgets || 'Trending Gadgets'
         
         // Set display names (what admin sees)
         setAvailableSections([
-          featuredDisplay,
-          gadgetsDisplay
+          featuredDisplay
         ])
         
         // Create mapping: display name -> filter identifier (used for backend)
         // The filter identifiers are always the standard names
         setSectionMapping({
-          [featuredDisplay]: 'Featured Products',
-          [gadgetsDisplay]: 'Trending Gadgets'
+          [featuredDisplay]: 'Featured Products'
         })
       }
     } catch (error) {
