@@ -85,7 +85,6 @@ function AdminProducts() {
       const categoryList = response.data || []
       
       const defaultCategories = [
-        { _id: 'toys', categorySlug: 'toys', name: 'Toys' },
         { _id: 'gadgets', categorySlug: 'gadgets', name: 'Gadgets' },
         { _id: 'building-sets', categorySlug: 'building-sets', name: 'Building Sets' },
         { _id: 'electronics', categorySlug: 'electronics', name: 'Electronics' },
@@ -101,7 +100,6 @@ function AdminProducts() {
     } catch (error) {
       console.error('Error fetching categories:', error)
       setCategories([
-        { _id: 'toys', categorySlug: 'toys', name: 'Toys' },
         { _id: 'gadgets', categorySlug: 'gadgets', name: 'Gadgets' },
         { _id: 'building-sets', categorySlug: 'building-sets', name: 'Building Sets' },
         { _id: 'electronics', categorySlug: 'electronics', name: 'Electronics' },
