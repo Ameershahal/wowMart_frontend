@@ -61,7 +61,16 @@ function Home() {
 
         // Fetch categories for homepage (only those marked to show on homepage, limit 4)
         const categoriesResponse = await api.get('/categories?homepage=true')
-        setCategories(categoriesResponse.data || [])
+        // Filter out specific categories: toys, gadgets, building-sets, electronics, games
+        const excludedCategorySlugs = ['toys', 'gadgets', 'building-sets', 'electronics', 'games']
+        const filteredCategories = (categoriesResponse.data || []).filter(category => {
+          const slug = category.categorySlug?.toLowerCase() || ''
+          const name = category.name?.toLowerCase() || ''
+          return !excludedCategorySlugs.some(excluded => 
+            slug.includes(excluded) || name.includes(excluded)
+          )
+        })
+        setCategories(filteredCategories)
         
         // Fetch active banners
         try {
@@ -93,21 +102,13 @@ function Home() {
           ])
         }
         
-        // Fetch products for trending collections with limits to reduce data transfer
-        // Filter by homePageSections if set, otherwise show all products in category (backward compatible)
-        const [featured, toys, gadgets, buildingSets] = await Promise.all([
-          api.get('/products/featured/list?section=Featured Products').then(res => res.data).catch(() => api.get('/products/featured/list').then(res => res.data)),
-          getProducts({ category: 'toys', homePageSection: 'Trending Toys', limit: 4 }),
-          getProducts({ category: 'gadgets', homePageSection: 'Trending Gadgets', limit: 4 }),
-          getProducts({ category: 'building-sets', homePageSection: 'Trending Building Sets', limit: 4 })
-        ])
+        // Fetch featured products
+        const featured = await api.get('/products/featured/list?section=Featured Products')
+          .then(res => res.data)
+          .catch(() => api.get('/products/featured/list').then(res => res.data))
         
         setFeaturedProducts(featured)
-        setTrendingCollections({
-          toys: toys.slice(0, 4),
-          gadgets: gadgets.slice(0, 4),
-          buildingSets: buildingSets.slice(0, 4)
-        })
+        setTrendingCollections({})
 
         // Fetch featured reviews
         try {
@@ -273,115 +274,7 @@ function Home() {
             </div>
           </div>
 
-          {/* Trending Collections */}
-          <div>
-            <div className="text-center mb-6 md:mb-12">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-black mb-2 md:mb-4">
-                {sectionNames.trendingCollections}
-              </h2>
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600">
-                Everyone's talking about these! 
-                <span className="text-red-600 font-bold ml-2">Top picks by {Math.floor(Math.random() * 300) + 500} kids this week!</span>
-              </p>
-            </div>
-
-            {/* Trending Toys */}
-            {trendingCollections.toys && trendingCollections.toys.length > 0 && (
-              <div className="mb-8 md:mb-16">
-                <div className="flex items-center justify-between mb-4 md:mb-6">
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-black text-black">{sectionNames.trendingToys}</h3>
-                  <Link
-                    to="/products?category=toys&sort=rating"
-                    className="text-black font-bold hover:text-yellow-400 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
-                  >
-                    See More!
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
-                  {trendingCollections.toys.map((product, index) => (
-                    <div
-                      key={product._id}
-                      className="stagger-fade-in"
-                      style={{
-                        animationDelay: `${index * 0.1}s`,
-                        animationFillMode: 'backwards'
-                      }}
-                    >
-                      <ProductCard product={product} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Trending Gadgets */}
-            {trendingCollections.gadgets && trendingCollections.gadgets.length > 0 && (
-              <div className="mb-16">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-black text-black">{sectionNames.trendingGadgets}</h3>
-                  <Link
-                    to="/products?category=gadgets&sort=rating"
-                    className="text-black font-bold hover:text-yellow-400 transition-colors flex items-center gap-2"
-                  >
-                    View All
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {trendingCollections.gadgets.map((product, index) => (
-                    <div
-                      key={product._id}
-                      className="stagger-fade-in"
-                      style={{
-                        animationDelay: `${index * 0.1}s`,
-                        animationFillMode: 'backwards'
-                      }}
-                    >
-                      <ProductCard product={product} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Trending Building Sets */}
-            {trendingCollections.buildingSets && trendingCollections.buildingSets.length > 0 && (
-              <div className="mb-16">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-black text-black">{sectionNames.trendingBuildingSets}</h3>
-                  <Link
-                    to="/products?category=building-sets&sort=rating"
-                    className="text-black font-bold hover:text-yellow-400 transition-colors flex items-center gap-2"
-                  >
-                    View All
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {trendingCollections.buildingSets.map((product, index) => (
-                    <div
-                      key={product._id}
-                      className="stagger-fade-in"
-                      style={{
-                        animationDelay: `${index * 0.1}s`,
-                        animationFillMode: 'backwards'
-                      }}
-                    >
-                      <ProductCard product={product} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        </div>  
       </section>
 
       {/* Featured Products */}
