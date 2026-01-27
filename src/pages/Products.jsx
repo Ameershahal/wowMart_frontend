@@ -39,12 +39,7 @@ function Products() {
         const categoryList = response.data || []
         
         // Combine admin categories with default categories
-        const defaultCategories = [
-    { value: 'gadgets', label: 'Gadgets' },
-    { value: 'building-sets', label: 'Building Sets' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'games', label: 'Games' }
-  ]
+        const defaultCategories = []
         
         // Get admin category slugs to avoid duplicates
         const adminCategorySlugs = new Set(categoryList.map(cat => cat.categorySlug))

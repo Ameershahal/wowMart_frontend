@@ -84,12 +84,7 @@ function AdminProducts() {
       const response = await api.get('/admin/categories')
       const categoryList = response.data || []
       
-      const defaultCategories = [
-        { _id: 'gadgets', categorySlug: 'gadgets', name: 'Gadgets' },
-        { _id: 'building-sets', categorySlug: 'building-sets', name: 'Building Sets' },
-        { _id: 'electronics', categorySlug: 'electronics', name: 'Electronics' },
-        { _id: 'games', categorySlug: 'games', name: 'Games' }
-      ]
+      const defaultCategories = []
       
       const adminCategorySlugs = new Set(categoryList.map(cat => cat.categorySlug))
       const uniqueDefaultCategories = defaultCategories.filter(
@@ -99,12 +94,7 @@ function AdminProducts() {
       setCategories([...categoryList, ...uniqueDefaultCategories])
     } catch (error) {
       console.error('Error fetching categories:', error)
-      setCategories([
-        { _id: 'gadgets', categorySlug: 'gadgets', name: 'Gadgets' },
-        { _id: 'building-sets', categorySlug: 'building-sets', name: 'Building Sets' },
-        { _id: 'electronics', categorySlug: 'electronics', name: 'Electronics' },
-        { _id: 'games', categorySlug: 'games', name: 'Games' }
-      ])
+      setCategories([])
     }
   }
 
