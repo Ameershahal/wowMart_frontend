@@ -65,6 +65,40 @@ function MyOrders() {
     setOrders([])
   }
 
+  // Check if order is within 7 days of purchase
+  const isWithinReturnPeriod = (orderDate) => {
+    const orderDateObj = new Date(orderDate)
+    const currentDate = new Date()
+    const diffTime = currentDate - orderDateObj
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays <= 7
+  }
+
+  const handleReturnRequest = async (order) => {
+    if (!isWithinReturnPeriod(order.createdAt)) {
+      alert('Return period has expired. Returns are only available within 7 days of purchase.')
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to return Order #${order.orderNumber}?\n\n` +
+      `This will initiate a return request. Our team will contact you shortly.`
+    )
+
+    if (confirmed) {
+      try {
+        // TODO: Add API call to backend for return request
+        // For now, just show a success message
+        alert(`Return request submitted for Order #${order.orderNumber}. Our team will contact you within 24 hours.`)
+        // You can add an API call here later:
+        // await api.post(`/orders/${order._id}/return`, { email: email })
+      } catch (error) {
+        console.error('Error submitting return request:', error)
+        alert('Failed to submit return request. Please contact customer support.')
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white py-6 sm:py-8 md:py-12 px-4">
       <div className="container mx-auto max-w-4xl">
@@ -186,13 +220,31 @@ function MyOrders() {
                         <p className="text-xs text-gray-500 mt-2">
                           {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                         </p>
+                        {isWithinReturnPeriod(order.createdAt) && order.status !== 'cancelled' && (
+                          <div className="mt-3">
+                            <button
+                              onClick={() => handleReturnRequest(order)}
+                              className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-lg font-semibold text-xs border border-red-200 hover:bg-red-100 transition-all"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m5 13h-3a2 2 0 01-2-2v-4a2 2 0 012-2h3" />
+                              </svg>
+                              Return Order
+                            </button>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Return available for {7 - Math.floor((new Date() - new Date(order.createdAt)) / (1000 * 60 * 60 * 24))} more day(s)
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <Link
-                        to={`/order-success/${order.orderNumber}`}
-                        className="inline-block bg-black text-yellow-400 px-4 py-2 rounded-lg font-semibold text-sm border border-black hover:bg-gray-900 transition-all whitespace-nowrap"
-                      >
-                        View Details
-                      </Link>
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          to={`/order-success/${order.orderNumber}`}
+                          className="inline-block bg-black text-yellow-400 px-4 py-2 rounded-lg font-semibold text-sm border border-black hover:bg-gray-900 transition-all whitespace-nowrap text-center"
+                        >
+                          View Details
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}

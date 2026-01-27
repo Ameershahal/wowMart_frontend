@@ -371,7 +371,7 @@ function Checkout() {
   return (
     <div className="bg-white min-h-screen py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-black mb-8">Almost There! 🎉</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-black mb-8">Almost There!</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
@@ -379,7 +379,7 @@ function Checkout() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Customer Information */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h2 className="text-2xl font-black text-black mb-6">Tell Us About You! 👤</h2>
+                <h2 className="text-2xl font-black text-black mb-6">Tell Us About You!</h2>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-black font-bold mb-2">Full Name *</label>
@@ -421,7 +421,7 @@ function Checkout() {
 
               {/* Shipping Address */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-black text-black mb-6">Where Should We Send It? 📦</h2>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-black text-black mb-6">Where Should We Send It?</h2>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-black font-bold mb-2">Street Address *</label>
@@ -498,7 +498,7 @@ function Checkout() {
 
               {/* Payment Method Selection */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-black text-black mb-6">Choose Payment Method 💳</h2>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-black text-black mb-6">Choose Payment Method</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Razorpay */}
                   <button
@@ -623,7 +623,7 @@ function Checkout() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-yellow-400 rounded-xl p-6 sticky top-24">
-              <h2 className="text-xl sm:text-2xl font-black text-black mb-6">Order Summary 📋</h2>
+              <h2 className="text-xl sm:text-2xl font-black text-black mb-6">Order Summary</h2>
               
               <div className="space-y-3 mb-6">
                 {cart.items.map((item) => {
@@ -664,8 +664,8 @@ function Checkout() {
               </div>
 
               <div className="bg-black text-white rounded-lg p-4 text-sm">
-                <p className="font-bold mb-2">Secure Checkout 🔒</p>
-                <p className="text-gray-300">Your info is super safe! ✅</p>
+                <p className="font-bold mb-2">Secure Checkout</p>
+                <p className="text-gray-300">Your info is super safe!</p>
               </div>
             </div>
           </div>
