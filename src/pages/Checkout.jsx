@@ -23,7 +23,7 @@ function Checkout() {
     zipCode: '',
     country: 'United States'
   })
-  const [paymentMethod, setPaymentMethod] = useState('card')
+  const [paymentMethod, setPaymentMethod] = useState('razorpay')
   const [saveAddress, setSaveAddress] = useState(true)
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '',
@@ -500,34 +500,6 @@ function Checkout() {
               <div className="bg-gray-50 rounded-xl p-6">
                 <h2 className="text-lg sm:text-xl md:text-2xl font-black text-black mb-6">Choose Payment Method 💳</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Credit/Debit Card */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('card')}
-                    className={`p-5 rounded-xl border-2 transition-all duration-200 text-left ${
-                      paymentMethod === 'card'
-                        ? 'border-yellow-400 bg-yellow-50 shadow-lg scale-105'
-                        : 'border-gray-300 bg-white hover:border-yellow-300 hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        paymentMethod === 'card' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-400'
-                      }`}>
-                        {paymentMethod === 'card' && (
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                      <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    </div>
-                    <p className="font-bold text-black text-sm">Credit/Debit Card</p>
-                    <p className="text-xs text-gray-600 mt-1">Visa, Mastercard, etc.</p>
-                  </button>
-
                   {/* Razorpay */}
                   <button
                     type="button"
@@ -584,85 +556,7 @@ function Checkout() {
                     <p className="text-xs text-gray-600 mt-1">Pay when you receive</p>
                   </button>
 
-                  {/* Bank Transfer */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('bank')}
-                    className={`p-5 rounded-xl border-2 transition-all duration-200 text-left ${
-                      paymentMethod === 'bank'
-                        ? 'border-yellow-400 bg-yellow-50 shadow-lg scale-105'
-                        : 'border-gray-300 bg-white hover:border-yellow-300 hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        paymentMethod === 'bank' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-400'
-                      }`}>
-                        {paymentMethod === 'bank' && (
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                      <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-                      </svg>
-                    </div>
-                    <p className="font-bold text-black text-sm">Bank Transfer</p>
-                    <p className="text-xs text-gray-600 mt-1">Direct bank transfer</p>
-                  </button>
                 </div>
-
-                {/* Payment Method Details (if card selected) */}
-                {paymentMethod === 'card' && (
-                  <div className="mt-6 p-5 bg-white rounded-lg border-2 border-gray-200 space-y-4">
-                    <div>
-                      <label className="block text-black font-bold mb-2 text-sm">Card Number *</label>
-                      <input
-                        type="text"
-                        value={cardDetails.cardNumber}
-                        onChange={(e) => handleCardInputChange('cardNumber', e.target.value)}
-                        placeholder="1234 5678 9012 3456"
-                        maxLength="19"
-                        className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-black font-bold mb-2 text-sm">Expiry Date *</label>
-                        <input
-                          type="text"
-                          value={cardDetails.expiryDate}
-                          onChange={(e) => handleCardInputChange('expiryDate', e.target.value)}
-                          placeholder="MM/YY"
-                          maxLength="5"
-                          className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-black font-bold mb-2 text-sm">CVV *</label>
-                        <input
-                          type="text"
-                          value={cardDetails.cvv}
-                          onChange={(e) => handleCardInputChange('cvv', e.target.value)}
-                          placeholder="123"
-                          maxLength="4"
-                          className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-black font-bold mb-2 text-sm">Cardholder Name *</label>
-                      <input
-                        type="text"
-                        value={cardDetails.cardholderName}
-                        onChange={(e) => handleCardInputChange('cardholderName', e.target.value)}
-                        placeholder="John Doe"
-                        className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200"
-                      />
-                    </div>
-                  </div>
-                )}
 
                 {paymentMethod === 'razorpay' && (
                   <div className="mt-6 p-5 bg-indigo-50 rounded-lg border-2 border-indigo-200">
@@ -683,18 +577,6 @@ function Checkout() {
                   </div>
                 )}
 
-                {paymentMethod === 'bank' && (
-                  <div className="mt-6 p-5 bg-white rounded-lg border-2 border-gray-200">
-                    <p className="text-sm font-semibold text-black mb-2">Bank Details:</p>
-                    <div className="space-y-1 text-xs text-gray-700">
-                      <p><span className="font-semibold">Account Name:</span> WowMart Inc.</p>
-                      <p><span className="font-semibold">Account Number:</span> 1234567890</p>
-                      <p><span className="font-semibold">Bank:</span> Example Bank</p>
-                      <p><span className="font-semibold">SWIFT:</span> EXMPUS33</p>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-3">Please include your order number in the transfer reference.</p>
-                  </div>
-                )}
               </div>
 
               <button
