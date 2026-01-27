@@ -40,7 +40,6 @@ function Products() {
         
         // Combine admin categories with default categories
         const defaultCategories = [
-    { value: 'toys', label: 'Toys' },
     { value: 'gadgets', label: 'Gadgets' },
     { value: 'building-sets', label: 'Building Sets' },
     { value: 'electronics', label: 'Electronics' },
