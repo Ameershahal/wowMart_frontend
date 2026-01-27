@@ -15,12 +15,10 @@ function AdminProducts() {
   // Section mapping: display name -> filter identifier
   const [sectionMapping, setSectionMapping] = useState({
     'Featured Products': 'Featured Products',
-    'Trending Toys': 'Trending Toys',
     'Trending Gadgets': 'Trending Gadgets'
   })
   const [availableSections, setAvailableSections] = useState([
     'Featured Products',
-    'Trending Toys',
     'Trending Gadgets'
   ])
   const [formData, setFormData] = useState({
@@ -53,13 +51,11 @@ function AdminProducts() {
         // These are the exact names shown on the homepage
         const sections = response.data.sections
         const featuredDisplay = sections.featuredProducts || 'Featured Products'
-        const toysDisplay = sections.trendingToys || 'Trending Toys'
         const gadgetsDisplay = sections.trendingGadgets || 'Trending Gadgets'
         
         // Set display names (what admin sees)
         setAvailableSections([
           featuredDisplay,
-          toysDisplay,
           gadgetsDisplay
         ])
         
@@ -67,7 +63,6 @@ function AdminProducts() {
         // The filter identifiers are always the standard names
         setSectionMapping({
           [featuredDisplay]: 'Featured Products',
-          [toysDisplay]: 'Trending Toys',
           [gadgetsDisplay]: 'Trending Gadgets'
         })
       }
