@@ -16,9 +16,6 @@ function Footer() {
             <h4 className="font-bold text-yellow-400 mb-3 sm:mb-4 text-sm sm:text-base">Shop</h4>
             <ul className="space-y-1.5 sm:space-y-2 text-gray-400 text-sm sm:text-base">
               <li><a href="/products" className="hover:text-yellow-400 transition-colors">All Products</a></li>
-              <li><a href="/products?category=toys" className="hover:text-yellow-400 transition-colors">Toys</a></li>
-              <li><a href="/products?category=gadgets" className="hover:text-yellow-400 transition-colors">Gadgets</a></li>
-              <li><a href="/products?category=building-sets" className="hover:text-yellow-400 transition-colors">Building Sets</a></li>
             </ul>
           </div>
           

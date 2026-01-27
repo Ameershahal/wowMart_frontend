@@ -38,41 +38,18 @@ function Products() {
         const response = await api.get('/categories')
         const categoryList = response.data || []
         
-        // Combine admin categories with default categories
-        const defaultCategories = [
-    { value: 'toys', label: 'Toys' },
-    { value: 'gadgets', label: 'Gadgets' },
-    { value: 'building-sets', label: 'Building Sets' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'games', label: 'Games' }
-  ]
-        
-        // Get admin category slugs to avoid duplicates
-        const adminCategorySlugs = new Set(categoryList.map(cat => cat.categorySlug))
-        
-        // Filter out default categories that exist in admin categories
-        const uniqueDefaultCategories = defaultCategories.filter(
-          cat => !adminCategorySlugs.has(cat.value)
-        )
-        
         setCategories([
           { value: '', label: 'All Categories' },
           ...categoryList.map(cat => ({
             value: cat.categorySlug,
             label: cat.name
-          })),
-          ...uniqueDefaultCategories
+          }))
         ])
       } catch (error) {
         console.error('Error fetching categories:', error)
-        // Fallback to default categories if API fails
+        // Fallback to empty categories if API fails
         setCategories([
-          { value: '', label: 'All Categories' },
-          { value: 'toys', label: 'Toys' },
-          { value: 'gadgets', label: 'Gadgets' },
-          { value: 'building-sets', label: 'Building Sets' },
-          { value: 'electronics', label: 'Electronics' },
-          { value: 'games', label: 'Games' }
+          { value: '', label: 'All Categories' }
         ])
       }
     }
