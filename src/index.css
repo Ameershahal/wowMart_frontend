@@ -8,23 +8,21 @@
   }
   
   body {
-    @apply bg-transparent text-black font-sans;
+    @apply bg-slate-50 text-slate-800 font-sans antialiased;
+    font-feature-settings: "ss01", "ss02";
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Comfortaa', cursive;
-    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    @apply font-semibold text-slate-900 tracking-tight;
   }
   
-  /* Mobile-first touch targets */
-  button, a {
+  /* Touch targets for primary actions */
+  button:not([class*="min-h"]):not([class*="p-"]), a:not([class*="min-h"]):not([class*="p-"]) {
     @apply min-h-[44px] min-w-[44px];
   }
   
-  /* Smooth transitions for all interactive elements */
-  * {
-    @apply transition-colors duration-200;
-  }
+  /* Avoid global transition – it slows paint; use transition-* on specific elements only */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -41,59 +39,36 @@
 
   .bg-blob-green {
     background: radial-gradient(
-      circle,
-      rgba(243, 223, 9, 0.6) 0%,
-      rgba(243, 235, 13, 0.35) 40%,
+      circle at 20% 50%,
+      rgba(234, 179, 8, 0.08) 0%,
+      rgba(234, 179, 8, 0.03) 50%,
       transparent 70%
     );
-    filter: blur(50px);
+    filter: blur(60px);
   }
   
   .btn-primary {
-    @apply bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2.5 px-5 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-sm sm:text-base relative overflow-hidden;
-  }
-  
-  .btn-primary::before {
-    content: '';
-    @apply absolute inset-0 bg-white opacity-0 transition-opacity duration-300;
-  }
-  
-  .btn-primary:hover::before {
-    @apply opacity-20;
-  }
-  
-  .btn-primary:active::before {
-    @apply opacity-30;
+    @apply bg-primary-yellow hover:bg-amber-500 text-slate-900 font-semibold py-2.5 px-5 sm:py-3 sm:px-6 rounded-xl transition-all duration-200 active:scale-[0.98] text-sm sm:text-base font-display;
   }
   
   .btn-secondary {
-    @apply bg-black hover:bg-gray-800 text-white font-bold py-2.5 px-5 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-sm sm:text-base relative overflow-hidden;
-  }
-  
-  .btn-secondary::before {
-    content: '';
-    @apply absolute inset-0 bg-white opacity-0 transition-opacity duration-300;
-  }
-  
-  .btn-secondary:hover::before {
-    @apply opacity-10;
+    @apply bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-5 sm:py-3 sm:px-6 rounded-xl transition-all duration-200 active:scale-[0.98] text-sm sm:text-base font-display;
   }
   
   .card {
-    @apply bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 sm:hover:-translate-y-2 active:scale-95 cursor-pointer;
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:border-slate-300/80 transition-all duration-200 cursor-pointer;
   }
   
   .card:hover {
-    @apply scale-[1.02];
+    @apply -translate-y-0.5;
   }
   
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
   
-  /* Interactive input fields */
   input, select, textarea {
-    @apply transition-all duration-200 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400;
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary-yellow/30 focus:border-primary-yellow rounded-lg;
   }
   
   /* Animated gradient background */
@@ -236,14 +211,8 @@
     @apply transition-all duration-200;
   }
   
-  /* Card hover effect enhancement */
   .card:hover img {
-    @apply scale-110;
-  }
-  
-  /* Button press effect */
-  button:active, .btn-primary:active, .btn-secondary:active {
-    @apply transform scale-95;
+    @apply scale-[1.02];
   }
   
   /* Banner Buy Now Button - No Border - Ultra Specific */
@@ -286,9 +255,8 @@
     -moz-border: 0 !important;
   }
   
-  /* Input focus glow */
   input:focus, select:focus, textarea:focus {
-    @apply shadow-lg shadow-yellow-400/50;
+    @apply shadow-sm shadow-primary-yellow/20;
   }
   
   /* Smooth image loading */

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getOrdersByEmail } from '../services/orderService'
+import Skeleton from '../components/Skeleton'
 
 function MyOrders() {
   const [orders, setOrders] = useState([])
@@ -112,10 +113,23 @@ function MyOrders() {
           </p>
         </div>
 
-        {/* Loading State */}
         {loading && showEmailForm === false ? (
-          <div className="min-h-[400px] flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-yellow-400"></div>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-xl border border-slate-200 p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3 mb-4" />
+                <div className="flex gap-4">
+                  <Skeleton className="w-16 h-16 rounded-lg" />
+                  <Skeleton className="w-16 h-16 rounded-lg" />
+                  <Skeleton className="w-16 h-16 rounded-lg" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : showEmailForm ? (
           <div className="bg-white rounded-lg border border-gray-200 p-6 sm:p-8">

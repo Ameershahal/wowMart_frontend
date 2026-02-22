@@ -86,11 +86,11 @@ function Navbar() {
     fetchCartCount()
     fetchWishlistCount()
     
-    // Poll less frequently to reduce flicker
+    // Poll infrequently; cart/wishlist updates also come from cartUpdated event
     const interval = setInterval(() => {
       fetchCartCount()
       fetchWishlistCount()
-    }, 3000) // Increased to 3 seconds to reduce flicker
+    }, 20000) // 20 seconds to reduce API load and re-renders
     return () => {
       clearInterval(interval)
       window.removeEventListener('cartUpdated', handleCartUpdate)
@@ -191,92 +191,51 @@ function Navbar() {
     <>
       <AnnouncementBanner />
       <nav 
-        className={`fixed left-0 right-0 z-40 transition-all duration-500 ease-out ${
-          isScrolled 
-            ? 'bg-white/98 backdrop-blur-xl shadow-xl' 
-            : 'bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 backdrop-blur-xl shadow-md'
+        className={`fixed left-0 right-0 z-40 transition-all duration-200 ${
+          isScrolled ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm' : 'bg-white border-b border-slate-200/60'
         }`}
         style={{ top: 'var(--announcement-height, 0px)' }}
       >
-        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-14 gap-4">
-            {/* Left Section: Logo + Navigation */}
-            <div className="flex items-center gap-6 lg:gap-8">
-              {/* Logo */}
-              <Link 
-                to="/" 
-                className="flex items-center group flex-shrink-0"
-              >
-                <img 
-                  src={logo} 
-                  alt="WowMart" 
-                  className="h-7 sm:h-8 lg:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                />
+        <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+          <div className="flex items-center justify-between h-16 gap-6">
+            <div className="flex items-center gap-10">
+              <Link to="/" className="flex items-center flex-shrink-0">
+                <img src={logo} alt="WowMart" className="h-8 w-auto object-contain" />
               </Link>
               
-              {/* Desktop Navigation */}
-              <div className="hidden lg:flex items-center gap-2">
+              <div className="hidden lg:flex items-center gap-1">
                 <Link 
                   to="/" 
-                  className={`px-5 py-2 rounded-lg font-bold text-sm transition-all duration-300 whitespace-nowrap relative group ${
-                    isActive('/')
-                      ? 'text-black bg-white shadow-lg scale-105'
-                      : isScrolled
-                      ? 'text-gray-800 hover:text-black hover:bg-white/80 hover:shadow-md'
-                      : 'text-black hover:text-gray-800 hover:bg-white/90 hover:shadow-lg hover:scale-105'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium font-display transition-colors ${
+                    isActive('/') ? 'text-slate-900 bg-slate-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <span className="relative z-10">Home</span>
-                  {isActive('/') && (
-                    <span className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-lg opacity-20"></span>
-                  )}
+                  Home
                 </Link>
-              
                 <Link 
                   to="/products" 
-                  className={`px-5 py-2 rounded-lg font-bold text-sm transition-all duration-300 whitespace-nowrap relative group ${
-                    isActive('/products')
-                      ? 'text-black bg-white shadow-lg scale-105'
-                      : isScrolled
-                      ? 'text-gray-800 hover:text-black hover:bg-white/80 hover:shadow-md'
-                      : 'text-black hover:text-gray-800 hover:bg-white/90 hover:shadow-lg hover:scale-105'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium font-display transition-colors ${
+                    isActive('/products') ? 'text-slate-900 bg-slate-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <span className="relative z-10">Products</span>
-                  {isActive('/products') && (
-                    <span className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-lg opacity-20"></span>
-                  )}
+                  Products
                 </Link>
-              
                 <Link 
                   to="/blog" 
-                  className={`px-5 py-2 rounded-lg font-bold text-sm transition-all duration-300 whitespace-nowrap relative group ${
-                    isActive('/blog')
-                      ? 'text-black bg-white shadow-lg scale-105'
-                      : isScrolled
-                      ? 'text-gray-800 hover:text-black hover:bg-white/80 hover:shadow-md'
-                      : 'text-black hover:text-gray-800 hover:bg-white/90 hover:shadow-lg hover:scale-105'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium font-display transition-colors ${
+                    isActive('/blog') ? 'text-slate-900 bg-slate-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <span className="relative z-10">Blog</span>
-                  {isActive('/blog') && (
-                    <span className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-lg opacity-20"></span>
-                  )}
+                  Blog
                 </Link>
               </div>
             </div>
 
-            {/* Right Section: Icons - Desktop Only */}
-            <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
-              {/* Search Icon Button */}
+            <div className="hidden lg:flex items-center gap-1 flex-shrink-0">
               <div className="relative search-container">
                 <button
                   onClick={handleSearchIconClick}
-                  className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${
-                    isScrolled 
-                      ? 'text-gray-700 hover:text-black hover:bg-white/80 hover:shadow-md' 
-                      : 'text-black hover:bg-white/90 hover:shadow-lg'
-                  }`}
+                  className="p-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                   title="Search"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,9 +243,8 @@ function Navbar() {
                   </svg>
                 </button>
 
-                {/* Search Bar Dropdown */}
                 {isSearchOpen && (
-                  <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 p-4">
+                  <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg border border-slate-200 z-50 p-4">
                     <form onSubmit={handleSearch} className="w-full">
                       <div className="relative">
                         <input
@@ -295,7 +253,7 @@ function Navbar() {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Search products..."
                           autoFocus
-                          className="w-full px-4 py-2.5 pr-10 text-sm rounded-lg border-2 border-black/20 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-500 bg-white transition-all duration-200"
+                          className="w-full px-4 py-2.5 pr-10 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-yellow/30 focus:border-primary-yellow bg-white"
                         />
                         <button
                           type="submit"
@@ -311,35 +269,25 @@ function Navbar() {
                   </div>
                 )}
               </div>
-              {/* Cart Button */}
               <Link 
                 to="/cart" 
-                className={`relative p-2.5 rounded-xl transition-all duration-300 hover:scale-110 group ${
-                  isScrolled 
-                    ? 'text-gray-700 hover:text-black hover:bg-white/80 hover:shadow-md' 
-                    : 'text-black hover:bg-white/90 hover:shadow-lg'
-                }`}
+                className="relative p-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                 title="Shopping Cart"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 {!isCartLoading && cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full min-w-[20px] h-[20px] px-1.5 flex items-center justify-center text-[11px] font-black border-2 border-white shadow-lg animate-pulse">
+                  <span className="absolute -top-0.5 -right-0.5 bg-slate-900 text-white rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-semibold">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </Link>
 
-              {/* Profile Menu */}
               <div className="relative profile-menu">
                   <button
                     onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                    className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${
-                      isScrolled 
-                        ? 'text-gray-700 hover:text-black hover:bg-white/80 hover:shadow-md' 
-                        : 'text-black hover:bg-white/90 hover:shadow-lg'
-                    }`}
+                    className="p-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                     title="Account"
                   >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,44 +295,22 @@ function Navbar() {
                   </svg>
                 </button>
 
-                {/* Profile Dropdown Menu */}
-              {/* Profile Dropdown Menu */}
 {isProfileMenuOpen && (
-  <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border-2 border-yellow-400/30 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-    <div className="py-2">
+  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
+    <div className="py-1">
       {!isLoggedIn ? (
         <>
-          <Link
-            to="/login"
-            onClick={() => setIsProfileMenuOpen(false)}
-            className="w-full text-left px-5 py-3.5 text-sm font-bold text-black hover:bg-gradient-to-r hover:from-yellow-400 hover:to-yellow-300 transition-all duration-200 flex items-center space-x-3 group"
-          >
-            <span>Login</span>
+          <Link to="/login" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900">
+            Log in
           </Link>
-          <Link
-            to="/signup"
-            onClick={() => setIsProfileMenuOpen(false)}
-            className="w-full text-left px-5 py-3.5 text-sm font-bold text-black hover:bg-gradient-to-r hover:from-yellow-400 hover:to-yellow-300 transition-all duration-200 flex items-center space-x-3 group"
-          >
-            <span>Sign Up</span>
+          <Link to="/signup" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900">
+            Sign up
           </Link>
         </>
       ) : (
         <>
-          <Link
-            to="/my-orders"
-            onClick={() => setIsProfileMenuOpen(false)}
-            className="w-full text-left px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-black transition-all duration-200 flex items-center space-x-3 group"
-          >
-            <span>My Orders</span>
-          </Link>
-          <Link
-            to="/profile"
-            onClick={() => setIsProfileMenuOpen(false)}
-            className="w-full text-left px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-black transition-all duration-200 flex items-center space-x-3 group"
-          >
-            <span>Profile</span>
-          </Link>
+          <Link to="/my-orders" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900">My Orders</Link>
+          <Link to="/profile" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900">Profile</Link>
           <button
             onClick={() => {
               localStorage.removeItem("token");
@@ -393,9 +319,9 @@ function Navbar() {
               setIsProfileMenuOpen(false);
               navigate("/login");
             }}
-            className="w-full text-left px-5 py-3 text-sm font-semibold text-red-600 hover:bg-gray-100 hover:text-red-700 transition-all duration-200 flex items-center space-x-3 group"
+            className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-slate-50"
           >
-            Logout
+            Log out
           </button>
         </>
       )}
@@ -406,27 +332,15 @@ function Navbar() {
               </div>
             </div>
 
-            {/* Mobile Menu Button & Icons */}
-            <div className="flex items-center gap-2 lg:hidden">
-              {/* Mobile Search Icon */}
+            <div className="flex items-center gap-1 lg:hidden">
               <div className="relative search-container">
-                <button
-                  onClick={handleSearchIconClick}
-                  className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${
-                    isScrolled 
-                      ? 'text-gray-700 hover:text-black hover:bg-white/80 hover:shadow-md' 
-                      : 'text-black hover:bg-white/90 hover:shadow-lg'
-                  }`}
-                  title="Search"
-                >
+                <button onClick={handleSearchIconClick} className="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100" title="Search">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </button>
-
-                {/* Mobile Search Bar Dropdown */}
                 {isSearchOpen && (
-                  <div className="fixed top-16 left-0 right-0 w-full bg-white shadow-2xl border-b border-gray-200 z-50 p-4">
+                  <div className="fixed top-16 left-0 right-0 w-full bg-white shadow-lg border-b border-slate-200 z-50 p-4">
                     <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
                       <div className="relative">
                         <input
@@ -435,7 +349,7 @@ function Navbar() {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Search products..."
                           autoFocus
-                          className="w-full px-4 py-2.5 pr-10 text-sm rounded-lg border-2 border-black/20 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-500 bg-white transition-all duration-200"
+                          className="w-full px-4 py-2.5 pr-10 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-yellow/30 focus:border-primary-yellow bg-white"
                         />
                         <button
                           type="submit"
@@ -452,27 +366,17 @@ function Navbar() {
                 )}
               </div>
 
-              <Link to="/cart" className="relative p-2.5 rounded-xl transition-all duration-300 hover:scale-110">
-                <svg className={`w-5 h-5 transition-colors ${
-                  isScrolled ? 'text-gray-700' : 'text-black'
-                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              <Link to="/cart" className="relative p-2.5 rounded-lg text-slate-600 hover:bg-slate-100">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 {!isCartLoading && cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full min-w-[20px] h-[20px] px-1.5 flex items-center justify-center text-[11px] font-black border-2 border-white shadow-lg animate-pulse">
+                  <span className="absolute -top-0.5 -right-0.5 bg-slate-900 text-white rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-semibold">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </Link>
-              
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${
-                  isScrolled 
-                    ? 'text-gray-700 hover:text-black hover:bg-white/80 hover:shadow-md' 
-                    : 'text-black hover:bg-white/90 hover:shadow-lg'
-                }`}
-              >
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {isMobileMenuOpen ? (
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -484,96 +388,16 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Menu - Enhanced */}
-          <div 
-            className={`lg:hidden overflow-hidden transition-all duration-300 ${
-              isMobileMenuOpen ? 'max-h-96 opacity-100 pb-3' : 'max-h-0 opacity-0'
-            }`}
-          >
-            <div className="py-2 space-y-2">
-              <Link
-                to="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
-                  isActive('/')
-                    ? 'bg-white text-black shadow-lg scale-105'
-                    : isScrolled
-                    ? 'text-gray-800 hover:bg-white/80 hover:text-black hover:shadow-md'
-                    : 'text-black hover:bg-white/90 hover:shadow-lg hover:scale-105'
-                }`}
-              >
-                Home
-              </Link>
-              <Link
-                to="/products"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
-                  isActive('/products')
-                    ? 'bg-white text-black shadow-lg scale-105'
-                    : isScrolled
-                    ? 'text-gray-800 hover:bg-white/80 hover:text-black hover:shadow-md'
-                    : 'text-black hover:bg-white/90 hover:shadow-lg hover:scale-105'
-                }`}
-              >
-                Products
-              </Link>
-              <Link
-                to="/blog"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
-                  isActive('/blog')
-                    ? 'bg-white text-black shadow-lg scale-105'
-                    : isScrolled
-                    ? 'text-gray-800 hover:bg-white/80 hover:text-black hover:shadow-md'
-                    : 'text-black hover:bg-white/90 hover:shadow-lg hover:scale-105'
-                }`}
-              >
-                Blog
-              </Link>
-              
-              {/* Profile Menu Items in Mobile Menu */}
-              <div className="border-t-2 border-yellow-200 my-2 pt-2">
-                <Link
-                  to="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-5 py-3 rounded-xl font-bold text-sm text-black hover:bg-gradient-to-r hover:from-yellow-400 hover:to-yellow-300 transition-all duration-200 flex items-center space-x-3 group"
-                >
-                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  <span>Login</span>
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-5 py-3 rounded-xl font-bold text-sm text-black hover:bg-gradient-to-r hover:from-yellow-400 hover:to-yellow-300 transition-all duration-200 flex items-center space-x-3 group"
-                >
-                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                  <span>Sign Up</span>
-                </Link>
-                <div className="border-t border-yellow-200 my-1"></div>
-                <Link
-                  to="/my-orders"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-5 py-3 rounded-xl font-semibold text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-all duration-200 flex items-center space-x-3 group"
-                >
-                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  <span>My Orders</span>
-                </Link>
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-5 py-3 rounded-xl font-semibold text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-all duration-200 flex items-center space-x-3 group"
-                >
-                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span>Profile</span>
-                </Link>
+          <div className={`lg:hidden overflow-hidden transition-all duration-200 ${isMobileMenuOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'}`}>
+            <div className="py-3 space-y-0.5 border-t border-slate-200">
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`block px-4 py-3 rounded-lg text-sm font-medium ${isActive('/') ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'}`}>Home</Link>
+              <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`block px-4 py-3 rounded-lg text-sm font-medium ${isActive('/products') ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'}`}>Products</Link>
+              <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className={`block px-4 py-3 rounded-lg text-sm font-medium ${isActive('/blog') ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'}`}>Blog</Link>
+              <div className="border-t border-slate-200 mt-2 pt-2">
+                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Log in</Link>
+                <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Sign up</Link>
+                <Link to="/my-orders" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">My Orders</Link>
+                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Profile</Link>
               </div>
             </div>
           </div>
@@ -581,13 +405,7 @@ function Navbar() {
         </div>
       </nav>
       
-      {/* Spacer to prevent content from going under navbar and announcement */}
-      <div 
-        style={{ 
-          height: `calc(3.5rem + var(--announcement-height, 0px))`,
-          minHeight: '3.5rem'
-        }}
-      ></div>
+      <div style={{ height: `calc(4rem + var(--announcement-height, 0px))`, minHeight: '4rem' }} aria-hidden="true" />
     </>
   )
 }

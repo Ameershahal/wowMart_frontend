@@ -32,8 +32,6 @@ function BannerSlider({ banners = [] }) {
   }
 
   useEffect(() => {
-        console.log(banners,"baneer");
-
     if (banners.length <= 1) return
 
     

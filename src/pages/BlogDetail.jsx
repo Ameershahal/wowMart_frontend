@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
 import SEO from '../components/SEO'
+import Skeleton from '../components/Skeleton'
 
 function BlogDetail() {
   const { slug } = useParams()
@@ -36,10 +37,16 @@ function BlogDetail() {
 
   if (loading) {
     return (
-      <div className="bg-transparent min-h-screen">
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      <div className="min-h-screen bg-slate-50 py-12">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <Skeleton className="h-4 w-48 mb-6" />
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-4 w-32 mb-8" />
+          <Skeleton className="aspect-video w-full rounded-xl mb-8" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
           </div>
         </div>
       </div>

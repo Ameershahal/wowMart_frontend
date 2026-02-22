@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getWishlist, removeFromWishlist } from '../services/wishlistService'
 import ProductCard from '../components/ProductCard'
+import ProductCardSkeleton from '../components/ProductCardSkeleton'
 
 function Wishlist() {
   const [wishlist, setWishlist] = useState(null)
@@ -24,8 +25,15 @@ function Wishlist() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-yellow-400"></div>
+      <div className="min-h-screen py-8 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="h-9 w-48 rounded bg-slate-200 animate-pulse mb-8" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

@@ -114,7 +114,7 @@ function ProductCard({ product }) {
       // Notify navbar to update cart count
       window.dispatchEvent(new Event('cartUpdated'))
       setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 2000)
+      setTimeout(() => setShowSuccess(false), 1200)
     } catch (error) {
       console.error('Error adding to cart:', error)
       // alert('Failed to add to cart. Please try again.')
@@ -173,15 +173,15 @@ function ProductCard({ product }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <SuccessAnimation show={showSuccess} message="Added to Cart!" />
+      <SuccessAnimation show={showSuccess} message="Added to cart" />
       <Link to={`/products/${product._id}`} className="block">
-        <div className="relative h-48 sm:h-56 md:h-64 bg-gray-100 overflow-hidden">
+        <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
           {product.images && product.images.length > 1 ? (
             <img
               key={currentImageIndex}
               src={`${product.images[currentImageIndex]}`}
               alt={`${product.name} ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover transition-opacity duration-500 ease-in-out"
+              className="w-full h-full object-cover transition-opacity duration-300"
               loading="lazy"
               decoding="async"
             />
@@ -189,279 +189,113 @@ function ProductCard({ product }) {
             <img
               src={product.images?.[0] || '/placeholder.jpg'}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
               loading="lazy"
               decoding="async"
             />
           )}
           
-          {/* Top Left - Discount Badge */}
           {product.originalPrice && (
-            <div 
-              className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 px-3 py-1.5 rounded-full font-bold text-xs shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer backdrop-blur-md"
-              style={{
-                background: 'rgba(251, 191, 36, 0.25)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 8px 32px 0 rgba(251, 191, 36, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.5)'
-              }}
-            >
-              <span className="text-black drop-shadow-sm">{Math.round((1 - product.price / product.originalPrice) * 100)}% OFF!</span>
-            </div>
+            <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-medium uppercase tracking-wide">
+              {Math.round((1 - product.price / product.originalPrice) * 100)}% off
+            </span>
           )}
-          
-          {/* Top Left - Stock/Urgency Badge (stacked below discount badge) */}
           {product.inStock && product.stockQuantity <= 10 && product.stockQuantity > 0 && (
-            <div 
-              className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 px-3 py-1.5 rounded-full font-bold text-xs shadow-lg backdrop-blur-md transition-all duration-300"
-              style={{ 
-                marginTop: product.originalPrice ? '32px' : '0',
-                background: 'rgba(239, 68, 68, 0.25)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 8px 32px 0 rgba(239, 68, 68, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.5)'
-              }}
-            >
-              <span className="text-white drop-shadow-sm">Only {product.stockQuantity} left!</span>
-            </div>
+            <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-rose-600 text-white text-[10px] font-medium" style={{ marginTop: product.originalPrice ? '24px' : 0 }}>
+              {product.stockQuantity} left
+            </span>
           )}
-          {product.inStock && product.stockQuantity > 10 && product.stockQuantity <= 20 && (
-            <div 
-              className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 px-3 py-1.5 rounded-full font-bold text-xs shadow-lg backdrop-blur-md transition-all duration-300"
-              style={{ 
-                marginTop: product.originalPrice ? '32px' : '0',
-                background: 'rgba(249, 115, 22, 0.25)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 8px 32px 0 rgba(249, 115, 22, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.5)'
-              }}
-            >
-              <span className="text-white drop-shadow-sm">Going Fast!</span>
-            </div>
-          )}
-          
-          {/* Bottom Left - BESTSELLER Badge */}
           {product.rating >= 4.8 && (
-            <div 
-              className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-10 px-3 py-1.5 rounded-full font-bold text-xs shadow-lg hover:scale-105 transition-all duration-300 backdrop-blur-md"
-              style={{
-                background: 'rgba(34, 197, 94, 0.25)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 8px 32px 0 rgba(34, 197, 94, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.5)'
-              }}
-            >
-              <span className="text-white drop-shadow-sm">BESTSELLER!</span>
-            </div>
+            <span className="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded-md bg-emerald-700 text-white text-[10px] font-medium">Bestseller</span>
           )}
-          
-          {/* Out of Stock Overlay */}
           {!product.inStock && (
-            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-30">
-              <span className="text-white font-bold text-xl">Out of Stock</span>
+            <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center z-20">
+              <span className="text-white text-sm font-medium">Out of stock</span>
             </div>
           )}
-          
-          {/* Top Right - Wishlist Button (subtle, integrated) */}
           <button
             onClick={handleWishlistToggle}
             disabled={wishlistLoading}
-            className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-20 rounded-full p-2 transition-all duration-300 touch-target ${
-              isInWishlist 
-                ? 'bg-red-500/90 text-white opacity-100' 
-                : 'text-white opacity-0 group-hover:opacity-100'
-            } hover:scale-110 active:scale-95`}
+            className={`absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+              isInWishlist ? 'bg-rose-500 text-white' : 'bg-white/90 text-slate-600 opacity-0 group-hover:opacity-100 hover:bg-white'
+            }`}
             title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
           >
-            <svg className="w-4.5 h-4.5 drop-shadow-lg" fill={isInWishlist ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill={isInWishlist ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
         </div>
       </Link>
 
-      <div className="p-3 sm:p-4 md:p-5 space-y-2 sm:space-y-2.5">
+      <div className="p-4">
         <Link to={`/products/${product._id}`}>
-          <h3 className="text-base sm:text-lg font-bold text-black mb-2 sm:mb-2.5 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] hover:text-yellow-400 transition-colors">
+          <h3 className="font-display font-semibold text-slate-900 text-sm leading-snug line-clamp-2 mb-2 hover:text-slate-700 transition-colors">
             {product.name}
           </h3>
         </Link>
-        
-        <div className="flex items-center gap-2 mb-2 sm:mb-2.5">
-          <div className="flex items-center gap-1 bg-gray-100 border border-gray-300 rounded px-2 py-0.5">
-            <span className="text-sm font-medium text-gray-700">{product.rating.toFixed(1)}</span>
-            <svg className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="0.5">
-              <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-            </svg>
-          </div>
-          <span className="text-gray-600 text-xs">({product.reviewCount})</span>
+        <div className="flex items-center gap-1.5 mb-2">
+          <span className="text-amber-500 text-xs font-medium">{product.rating?.toFixed(1) || '0'}</span>
+          <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+          <span className="text-slate-400 text-xs">({product.reviewCount || 0})</span>
+        </div>
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="font-display font-semibold text-slate-900">₹{product.price}</span>
+          {product.originalPrice && <span className="text-slate-400 line-through text-sm">₹{product.originalPrice}</span>}
         </div>
 
-        <div className="flex items-center justify-between mb-2 sm:mb-2.5">
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl sm:text-2xl font-black text-black">₹{product.price}</span>
-            {product.originalPrice && (
-              <span className="text-gray-400 line-through text-sm sm:text-base">₹{product.originalPrice}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Add to Cart / Quantity Controls */}
         {product.inStock && (
-          <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+          <div className="hidden md:flex items-stretch gap-2" onClick={(e) => e.stopPropagation()}>
             {cartItem ? (
-              <div className=" items-center gap-2 hidden md:flex">
-                <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                  <button
-                    onClick={handleDecrease}
-                    disabled={loading}
-                    className="w-8 h-8 sm:w-9 sm:h-9 text-gray-700 hover:text-black hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center touch-target"
-                  >
-                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
+              <>
+                <div className="flex items-center border border-slate-200 rounded-lg bg-white flex-shrink-0 min-w-[7.5rem]">
+                  <button type="button" onClick={handleDecrease} disabled={loading} className="w-9 h-9 flex-shrink-0 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-50 rounded-l-md">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
                   </button>
-                  <span className="text-black font-semibold text-sm sm:text-base px-3 sm:px-4 min-w-[2rem] sm:min-w-[2.5rem] text-center border-x border-gray-300">{cartItem.quantity}</span>
-                  <button
-                    onClick={handleIncrease}
-                    disabled={loading || cartItem.quantity >= product.stockQuantity}
-                    className="w-8 h-8 sm:w-9 sm:h-9 text-gray-700 hover:text-black hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center touch-target"
-                  >
-                    <svg className="w-3 h-3 md:w-4 md:h-4 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+                  <span className="w-8 text-center text-sm font-medium text-slate-900 flex-shrink-0">{cartItem.quantity}</span>
+                  <button type="button" onClick={handleIncrease} disabled={loading || cartItem.quantity >= product.stockQuantity} className="w-9 h-9 flex-shrink-0 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-50 rounded-r-md">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   </button>
                 </div>
                 <button
-                  onClick={async (e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    // If item is already in cart, just navigate
-                    if (cartItem && cartItem._id) {
-                      navigate('/checkout')
-                    } else {
-                      // Otherwise add to cart first
-                      setLoading(true)
-                      try {
-                        await addToCart(product._id, 1)
-                        await new Promise(resolve => setTimeout(resolve, 200))
-                        window.dispatchEvent(new Event('cartUpdated'))
-                        navigate('/checkout')
-                      } catch (error) {
-                        console.error('Error adding to cart:', error)
-                        // alert('Failed to add to cart. Please try again.')
-                        setLoading(false)
-                      }
-                    }
-                  }}
-                  className="flex-1 text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 rounded-md transition-all duration-200 touch-target shadow-md hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5"
-                  style={{
-                    backgroundColor: buttonColor,
-                    border: 'none',
-                    outline: 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    // Darken color on hover
-                    const rgb = hexToRgb(buttonColor)
-                    if (rgb) {
-                      e.target.style.backgroundColor = `rgb(${Math.max(0, rgb.r - 20)}, ${Math.max(0, rgb.g - 20)}, ${Math.max(0, rgb.b - 20)})`
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = buttonColor
-                  }}
+                  type="button"
+                  onClick={() => navigate('/checkout')}
+                  className="flex-1 min-w-0 py-2.5 rounded-lg text-sm font-medium text-white flex items-center justify-center"
+                  style={{ backgroundColor: buttonColor }}
+                  onMouseEnter={(e) => { const rgb = hexToRgb(buttonColor); if (rgb) e.target.style.backgroundColor = `rgb(${Math.max(0, rgb.r - 15)}, ${Math.max(0, rgb.g - 15)}, ${Math.max(0, rgb.b - 15)})` }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = buttonColor }}
                 >
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                  <span className='hidden md:block'>Buy Now</span>
-                  
+                  Buy now
                 </button>
-              </div>
+              </>
             ) : (
-              <div className=" items-center gap-2 hidden md:flex">
+              <>
                 <button
                   onClick={handleAddToCart}
                   disabled={loading}
-                  className="flex-1 bg-black text-white py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-900 transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5 sm:space-x-2 touch-target shadow-md hover:shadow-lg"
+                  className="flex-1 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span className="text-xs sm:text-sm">Adding...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <span className="text-xs sm:text-sm hidden md:block">Grab It! 🛒</span>
-                    </>
-                  )}
+                  {loading ? <span className="animate-spin w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full" /> : 'Add to cart'}
                 </button>
                 <button
                   onClick={async (e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    setLoading(true)
+                    e.preventDefault(); e.stopPropagation(); setLoading(true)
                     try {
                       await addToCart(product._id, 1)
-                      // Wait a bit for the backend to process
-                      await new Promise(resolve => setTimeout(resolve, 200))
-                      // Notify navbar to update cart count
+                      await new Promise(r => setTimeout(r, 200))
                       window.dispatchEvent(new Event('cartUpdated'))
                       navigate('/checkout')
-                    } catch (error) {
-                      console.error('Error adding to cart:', error)
-                      // alert('Failed to add to cart. Please try again.')
-                      setLoading(false)
-                    }
+                    } catch (err) { console.error(err); setLoading(false) }
                   }}
                   disabled={loading}
-                  className="flex-1 text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-target shadow-md hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5"
-                  style={{
-                    backgroundColor: buttonColor,
-                    border: 'none',
-                    outline: 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!loading) {
-                      const rgb = hexToRgb(buttonColor)
-                      if (rgb) {
-                        e.target.style.backgroundColor = `rgb(${Math.max(0, rgb.r - 20)}, ${Math.max(0, rgb.g - 20)}, ${Math.max(0, rgb.b - 20)})`
-                      }
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = buttonColor
-                  }}
+                  className="flex-1 py-2.5 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-1.5"
+                  style={{ backgroundColor: buttonColor }}
+                  onMouseEnter={(e) => { const rgb = hexToRgb(buttonColor); if (rgb) e.target.style.backgroundColor = `rgb(${Math.max(0, rgb.r - 15)}, ${Math.max(0, rgb.g - 15)}, ${Math.max(0, rgb.b - 15)})` }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = buttonColor }}
                 >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                      </svg>
-                      <span className='hidden md:block'>Buy Now</span>
-                      
-                    </>
-                  )}
+                  Buy now
                 </button>
-              </div>
+              </>
             )}
           </div>
         )}

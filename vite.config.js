@@ -2,15 +2,19 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import os from 'os'
 
-// Get local network IP address
+// Get local network IP address (fallback to localhost if unavailable)
 function getNetworkIP() {
-  const interfaces = os.networkInterfaces()
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address
+  try {
+    const interfaces = os.networkInterfaces()
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          return iface.address
+        }
       }
     }
+  } catch {
+    // e.g. sandbox or restricted env
   }
   return 'localhost'
 }

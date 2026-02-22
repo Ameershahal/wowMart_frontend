@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getOrder } from '../services/orderService'
+import Skeleton from '../components/Skeleton'
 
 function OrderSuccess() {
   const { orderNumber } = useParams()
@@ -25,8 +26,28 @@ function OrderSuccess() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-yellow-400"></div>
+      <div className="min-h-screen py-20 bg-slate-50">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <div className="flex justify-center mb-6">
+            <Skeleton className="w-24 h-24 rounded-full" />
+          </div>
+          <Skeleton className="h-10 w-full max-w-md mx-auto mb-4" />
+          <Skeleton className="h-5 w-2/3 mx-auto mb-8" />
+          <div className="bg-white rounded-xl border border-slate-200 p-8 space-y-4">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-1/2" />
+            <div className="pt-4 space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex gap-4">
+                  <Skeleton className="w-16 h-16 rounded-lg flex-shrink-0" />
+                  <Skeleton className="h-4 flex-1" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react'
 
+const TOAST_DURATION_MS = 1200
+
 function SuccessAnimation({ show, message = 'Added to Cart!' }) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    if (show) {
-      setIsVisible(true)
-      const timer = setTimeout(() => {
-        setIsVisible(false)
-      }, 2000)
-      return () => clearTimeout(timer)
+    if (!show) {
+      setIsVisible(false)
+      return
     }
+    setIsVisible(true)
+    const timer = setTimeout(() => setIsVisible(false), TOAST_DURATION_MS)
+    return () => clearTimeout(timer)
   }, [show])
 
-  if (!isVisible) return null
+  if (!show || !isVisible) return null
 
   return (
     <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">

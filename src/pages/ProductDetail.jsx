@@ -9,6 +9,7 @@ import ImageZoom from '../components/ImageZoom'
 import Confetti from '../components/Confetti'
 import SuccessAnimation from '../components/SuccessAnimation'
 import SEO from '../components/SEO'
+import Skeleton from '../components/Skeleton'
 import { useButtonColor } from '../hooks/useButtonColor'
 
 function ProductDetail() {
@@ -18,8 +19,13 @@ function ProductDetail() {
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [selectedColor, setSelectedColor] = useState(null)
   const [addingToCart, setAddingToCart] = useState(false)
   const [isInWishlist, setIsInWishlist] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [couponApplied, setCouponApplied] = useState(false)
+  const [couponError, setCouponError] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
   const { buttonColor } = useButtonColor()
 
   // Helper function to convert hex to RGB
@@ -66,11 +72,24 @@ function ProductDetail() {
     }
   }, [id])
 
+  // Derive colour options from product (variants or colors array)
+  const colorOptions = product
+    ? (product.variants?.find((v) => /color|colour/i.test(v.name))?.options ||
+       product.colors ||
+       [])
+    : []
+
   useEffect(() => {
+    setSelectedColor(null)
+    setCouponApplied(false)
+    setCouponCode('')
+    setCouponError('')
     const fetchProduct = async () => {
       try {
         const data = await getProduct(id)
         setProduct(data)
+        const options = data.variants?.find((v) => /color|colour/i.test(v.name))?.options || data.colors || []
+        if (options.length > 0) setSelectedColor(options[0])
       } catch (error) {
         console.error('Error fetching product:', error)
       } finally {
@@ -149,7 +168,7 @@ function ProductDetail() {
     try {
       await addToCart(product._id, quantity)
       setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 2000)
+      setTimeout(() => setShowSuccess(false), 1200)
     } catch (error) {
       console.error('Error adding to cart:', error)
     } finally {
@@ -172,10 +191,72 @@ function ProductDetail() {
     }
   }
 
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase()
+    if (!code) {
+      setCouponError('Please enter a coupon code')
+      return
+    }
+    setCouponError('')
+    setCouponLoading(true)
+    try {
+      // Demo: accept common codes; replace with API call when backend supports coupons
+      const demoCodes = { SAVE10: '10% off', SAVE5: '5% off', WOW5: '₹50 off', EXTRA5: 'Extra 5% off' }
+      if (demoCodes[code]) {
+        setCouponApplied(true)
+      } else {
+        setCouponError('Invalid or expired coupon code')
+      }
+    } catch (err) {
+      setCouponError('Could not apply coupon. Try again.')
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    setCouponApplied(false)
+    setCouponCode('')
+    setCouponError('')
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-yellow-400"></div>
+      <div className="min-h-screen bg-slate-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+          <div className="flex items-center gap-2 mb-8">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+            <div className="space-y-4">
+              <Skeleton className="aspect-square w-full rounded-xl" />
+              <div className="grid grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="aspect-square rounded-lg" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-12" />
+              </div>
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <div className="flex gap-3 pt-4">
+                <Skeleton className="h-12 w-32 rounded-lg" />
+                <Skeleton className="h-12 flex-1 rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -311,6 +392,34 @@ function ProductDetail() {
               </span>
             </div>
 
+            {/* Colour / Variant selector */}
+            {colorOptions.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {product.variants?.find((v) => /color|colour/i.test(v.name))?.name || 'Colour'}
+                  {selectedColor && (
+                    <span className="font-semibold text-black ml-1">: {selectedColor}</span>
+                  )}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {colorOptions.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setSelectedColor(opt)}
+                      className={`min-h-[44px] px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                        selectedColor === opt
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'bg-white text-slate-800 border-slate-300 hover:border-slate-500'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Trust Badges */}
             {product.inStock && (
               <div>
@@ -338,6 +447,55 @@ function ProductDetail() {
                 </div>
               </div>
             )}
+
+            {/* Coupon / Promo section */}
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-red-600 text-white px-4 py-2 text-sm font-semibold uppercase tracking-wide">
+                More saving
+              </div>
+              <div className="p-4 bg-slate-50">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Have a coupon?</label>
+                  {couponApplied ? (
+                    <div className="flex items-center justify-between gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <span className="text-sm font-medium text-green-800">Coupon applied</span>
+                      <button
+                        type="button"
+                        onClick={handleRemoveCoupon}
+                        className="text-sm font-medium text-green-700 underline hover:no-underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value)
+                          setCouponError('')
+                        }}
+                        placeholder="Enter coupon code"
+                        className="flex-1 min-w-0 px-4 py-2.5 rounded-lg border border-slate-300 focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none text-sm"
+                        disabled={couponLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading}
+                        className="px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        {couponLoading ? 'Checking…' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                  {couponError && (
+                    <p className="mt-2 text-sm text-red-600">{couponError}</p>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Quantity Selector */}
             {product.inStock && (
