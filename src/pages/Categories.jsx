@@ -10,7 +10,7 @@ function Categories() {
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return ''
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl
-    const base = import.meta.env.DEV ? 'http://localhost:5001' : 'https://wow-yx0e.onrender.com'
+    const base = import.meta.env.DEV ? 'http://localhost:5001' : 'https://wow-jrau.onrender.com'
     return `${base}${imageUrl}`
   }
 

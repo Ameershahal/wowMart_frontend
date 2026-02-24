@@ -42,7 +42,7 @@ function Home() {
     // Otherwise, prepend the API base URL for local uploads
     const API_BASE = import.meta.env.DEV 
       ? 'http://localhost:5000' 
-      : 'https://wowmart-h0ky.onrender.com'
+      : 'https://wow-jrau.onrender.com'
     return `${API_BASE}${imageUrl}`
   }
 
