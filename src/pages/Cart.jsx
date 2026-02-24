@@ -39,6 +39,8 @@ function CartItemRow({ item, index, updatingId, onQuantityChange, onRemove }) {
             src={item.product?.images?.[0] || 'https://via.placeholder.com/128'}
             alt={item.product?.name || 'Product'}
             className="w-32 h-32 object-cover rounded-lg group-hover:opacity-95"
+            loading="lazy"
+            decoding="async"
             onError={(e) => { e.target.src = 'https://via.placeholder.com/128' }}
           />
         </Link>
@@ -179,7 +181,7 @@ function Cart() {
 
   if (loading) {
     return (
-      <div className="min-h-screen py-8 bg-slate-50">
+      <div className="min-h-screen py-8 bg-surface-subtle">
         <div className="container mx-auto px-4 max-w-4xl">
           <Skeleton className="h-9 w-64 mb-8" />
           <div className="space-y-4">

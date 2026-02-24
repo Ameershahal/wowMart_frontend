@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../utils/logout'
+import { getAddressService } from '../services/userService'
 
 function Profile() {
   const [formData, setFormData] = useState({
@@ -11,8 +12,45 @@ function Profile() {
   })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const navigate = useNavigate()
 
-   const navigate = useNavigate();
+  // Load user info and saved address on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const userJson = localStorage.getItem('user')
+        if (userJson) {
+          const user = JSON.parse(userJson)
+          setFormData(prev => ({
+            ...prev,
+            name: user.name || user.fullName || '',
+            email: user.email || '',
+            phone: user.phone || ''
+          }))
+        }
+        // Load saved address (from checkout) if logged in
+        try {
+          const res = await getAddressService()
+          if (res.data?.savedAddress) {
+            const a = res.data.savedAddress
+            const addressLine = [a.street, a.city, a.state, a.zipCode, a.country].filter(Boolean).join(', ')
+            setFormData(prev => ({ ...prev, address: addressLine || prev.address }))
+          }
+        } catch {
+          // Fallback: use localStorage saved address (same key as checkout)
+          const saved = localStorage.getItem('savedShippingAddress')
+          if (saved) {
+            const a = JSON.parse(saved)
+            const addressLine = [a.street, a.city, a.state, a.zipCode, a.country].filter(Boolean).join(', ')
+            setFormData(prev => ({ ...prev, address: addressLine || prev.address }))
+          }
+        }
+      } catch (e) {
+        console.error('Error loading profile', e)
+      }
+    }
+    loadProfile()
+  }, [])
 
   const handleLogout = () => {
     logout();

@@ -255,6 +255,19 @@ function Home() {
                 ))
               )}
             </div>
+            {categories.length > 0 && (
+              <div className="text-center mt-8 md:mt-10">
+                <Link
+                  to="/categories"
+                  className="inline-flex items-center gap-2 text-slate-700 font-semibold text-sm md:text-base hover:text-slate-900 transition-colors"
+                >
+                  View more categories
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            )}
           </div>
 
         </div>  
@@ -358,6 +371,8 @@ function Home() {
                         src={review.product.images[0]}
                         alt={review.product.name || 'Product'}
                         className="w-10 h-10 object-cover rounded-lg"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           e.target.style.display = 'none'
                         }}

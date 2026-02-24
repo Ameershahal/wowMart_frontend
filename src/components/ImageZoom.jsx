@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function ImageZoom({ src, alt, className = '' }) {
+function ImageZoom({ src, alt, className = '', loading = 'lazy', decoding = 'async' }) {
   const [isZoomed, setIsZoomed] = useState(false)
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 })
 
@@ -43,6 +43,8 @@ function ImageZoom({ src, alt, className = '' }) {
       <img
         src={src}
         alt={alt}
+        loading={loading}
+        decoding={decoding}
         className={`w-full h-full object-cover transition-transform duration-300 ease-out ${
           isZoomed ? 'scale-150' : 'scale-100'
         }`}

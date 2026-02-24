@@ -12,6 +12,7 @@ function AdminProducts() {
   const [imageFiles, setImageFiles] = useState([])
   const [imagePreview, setImagePreview] = useState([])
   const [uploadingImages, setUploadingImages] = useState(false)
+  const [savingProduct, setSavingProduct] = useState(false)
   // Section mapping: display name -> filter identifier
   const [sectionMapping, setSectionMapping] = useState({
     'Featured Products': 'Featured Products'
@@ -32,7 +33,9 @@ function AdminProducts() {
     homePageSections: [],
     freeShipping: true,
     returnDays: '30',
-    shippingCharge: '0'
+    shippingCharge: '0',
+    colors: [],
+    colorsInput: ''
   })
 
   useEffect(() => {
@@ -188,22 +191,29 @@ function AdminProducts() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (savingProduct) return
     try {
-      if (!formData.name || !formData.description || !formData.category || !formData.price) {
+      if (!formData.name?.trim() || !formData.description?.trim() || !formData.category || !formData.price) {
         alert('Please fill in all required fields (Name, Description, Category, Price)')
         return
       }
 
-      if (imageFiles.length === 0 && formData.images.length === 0) {
+      const hasExistingImages = formData.images.length > 0 || (editingProduct?.images?.length > 0)
+      if (imageFiles.length === 0 && !hasExistingImages) {
         alert('Please upload at least one image')
         return
       }
 
+      setSavingProduct(true)
+
       // Upload new images
       const newImageUrls = await uploadImages()
       
-      // Combine existing images with newly uploaded ones
-      const allImages = [...formData.images, ...newImageUrls]
+      // Combine existing images with newly uploaded ones; when editing, fall back to product's images if form has none (e.g. list API didn't return images)
+      let allImages = [...formData.images, ...newImageUrls]
+      if (editingProduct && allImages.length === 0 && editingProduct.images?.length > 0) {
+        allImages = editingProduct.images
+      }
 
       // Ensure freeShipping and returnDays are properly set
       const freeShippingValue = formData.freeShipping !== undefined && formData.freeShipping !== null 
@@ -225,20 +235,24 @@ function AdminProducts() {
         sectionMapping[displayName] || displayName
       )
       
+      const colorsArray = Array.isArray(formData.colors) ? formData.colors : []
+      const stockNum = parseInt(formData.stock) || 0
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : parseFloat(formData.price),
         category: formData.category,
-        stock: parseInt(formData.stock) || 0,
+        stock: stockNum,
+        stockQuantity: stockNum,
         rating: parseFloat(formData.rating) || 0,
         reviewCount: parseInt(formData.reviewCount) || 0,
         images: allImages,
         homePageSections: mappedSections,
         freeShipping: freeShippingValue,
         returnDays: returnDaysValue,
-        shippingCharge: shippingChargeValue
+        shippingCharge: shippingChargeValue,
+        colors: colorsArray
       }
 
       console.log('Sending product data:', productData)
@@ -262,6 +276,9 @@ function AdminProducts() {
         cache.clear()
       }
 
+      const productId = editingProduct?._id
+      const savedColors = colorsArray
+
       setShowAddModal(false)
       setEditingProduct(null)
       setImageFiles([])
@@ -269,32 +286,37 @@ function AdminProducts() {
       setFormData({
         name: '', description: '', price: '', originalPrice: '', category: '',
         stock: '0', images: [], rating: '0', reviewCount: '0',
-        homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0'
+        homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: ''
       })
-      fetchProducts()
+      await fetchProducts()
+      // If API doesn't return colors in list, keep the colours we just saved in list state so they show when reopening edit
+      if (productId && savedColors.length > 0) {
+        setProducts((prev) =>
+          prev.map((p) =>
+            p._id === productId ? { ...p, colors: savedColors } : p
+          )
+        )
+      }
+      alert(editingProduct ? 'Product updated successfully.' : 'Product created successfully.')
     } catch (error) {
       console.error('Error saving product:', error)
-      const errorMessage = error.response?.data?.message || 'Error saving product'
+      const errorMessage = error.response?.data?.message || error.message || 'Error saving product'
       alert(errorMessage)
+    } finally {
+      setSavingProduct(false)
     }
   }
 
-  const handleEdit = (product) => {
-    console.log('Editing product:', product)
-    console.log('Product freeShipping:', product.freeShipping, 'type:', typeof product.freeShipping)
-    console.log('Product returnDays:', product.returnDays, 'type:', typeof product.returnDays)
-    
+  const handleEdit = async (product) => {
     setEditingProduct(product)
-    
-    // Map filter identifiers back to display names for editing
+    // Pre-fill form from list product so modal shows something immediately
     const reverseMapping = Object.fromEntries(
       Object.entries(sectionMapping).map(([display, filter]) => [filter, display])
     )
-    const displaySections = (product.homePageSections || []).map(filterName => 
+    const displaySectionsList = (product.homePageSections || []).map(filterName =>
       reverseMapping[filterName] || filterName
     )
-    
-    const formDataToSet = {
+    setFormData({
       name: product.name || '',
       description: product.description || '',
       price: product.price?.toString() || '',
@@ -304,16 +326,73 @@ function AdminProducts() {
       images: product.images || [],
       rating: product.rating?.toString() || '0',
       reviewCount: product.reviewCount?.toString() || '0',
-      homePageSections: displaySections,
+      homePageSections: displaySectionsList,
       freeShipping: product.freeShipping !== undefined ? Boolean(product.freeShipping) : true,
       returnDays: product.returnDays !== undefined ? product.returnDays.toString() : '30',
-      shippingCharge: product.shippingCharge !== undefined ? product.shippingCharge.toString() : '0'
-    }
-    console.log('Setting form data:', formDataToSet)
-    setFormData(formDataToSet)
+      shippingCharge: product.shippingCharge !== undefined ? product.shippingCharge.toString() : '0',
+      colors: Array.isArray(product.colors) ? [...product.colors] : (product.colors ? [product.colors] : []),
+      colorsInput: ''
+    })
     setImageFiles([])
     setImagePreview([])
     setShowAddModal(true)
+
+    // Load full product so we get colors and full images (list API often omits these)
+    try {
+      const res = await api.get(`/admin/products/${product._id}`)
+      if (res.data) {
+        const full = res.data
+        setEditingProduct(full)
+        const displaySections = (full.homePageSections || []).map(filterName =>
+          reverseMapping[filterName] || filterName
+        )
+        setFormData({
+          name: full.name || '',
+          description: full.description || '',
+          price: full.price?.toString() || '',
+          originalPrice: full.originalPrice?.toString() || full.price?.toString() || '',
+          category: full.category || '',
+          stock: full.stockQuantity?.toString() || '0',
+          images: full.images || [],
+          rating: full.rating?.toString() || '0',
+          reviewCount: full.reviewCount?.toString() || '0',
+          homePageSections: displaySections,
+          freeShipping: full.freeShipping !== undefined ? Boolean(full.freeShipping) : true,
+          returnDays: full.returnDays !== undefined ? full.returnDays.toString() : '30',
+          shippingCharge: full.shippingCharge !== undefined ? full.shippingCharge.toString() : '0',
+          colors: Array.isArray(full.colors) ? [...full.colors] : (full.colors ? [full.colors] : []),
+          colorsInput: ''
+        })
+      }
+    } catch (e) {
+      try {
+        const res = await api.get(`/products/${product._id}`)
+        if (res.data) {
+          const full = res.data
+          setEditingProduct(full)
+          const displaySections = (full.homePageSections || []).map(filterName =>
+            reverseMapping[filterName] || filterName
+          )
+          setFormData({
+            name: full.name || '',
+            description: full.description || '',
+            price: full.price?.toString() || '',
+            originalPrice: full.originalPrice?.toString() || full.price?.toString() || '',
+            category: full.category || '',
+            stock: full.stockQuantity?.toString() || '0',
+            images: full.images || [],
+            rating: full.rating?.toString() || '0',
+            reviewCount: full.reviewCount?.toString() || '0',
+            homePageSections: displaySections,
+            freeShipping: full.freeShipping !== undefined ? Boolean(full.freeShipping) : true,
+            returnDays: full.returnDays !== undefined ? full.returnDays.toString() : '30',
+            shippingCharge: full.shippingCharge !== undefined ? full.shippingCharge.toString() : '0',
+            colors: Array.isArray(full.colors) ? [...full.colors] : (full.colors ? [full.colors] : []),
+            colorsInput: ''
+          })
+        }
+      } catch (_) {}
+    }
   }
 
   const handleDelete = async (id) => {
@@ -347,7 +426,7 @@ function AdminProducts() {
             setFormData({
               name: '', description: '', price: '', originalPrice: '', category: '',
               stock: '0', images: [], rating: '0', reviewCount: '0',
-              homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0'
+              homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: ''
             })
             setShowAddModal(true)
           }}
@@ -472,7 +551,7 @@ function AdminProducts() {
               </button>
             </div>
             <div className="p-5">
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-black mb-2">Name *</label>
@@ -535,6 +614,68 @@ function AdminProducts() {
                     required
                     className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
                   />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-black mb-2">Available colours</label>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <input
+                      type="text"
+                      placeholder="Type colour and press Enter"
+                      className="flex-1 min-w-[140px] px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+                      value={formData.colorsInput ?? ''}
+                      onChange={(e) => setFormData({ ...formData, colorsInput: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          const val = (formData.colorsInput || '').trim()
+                          if (val && !(formData.colors || []).includes(val)) {
+                            setFormData({
+                              ...formData,
+                              colors: [...(formData.colors || []), val],
+                              colorsInput: ''
+                            })
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = (formData.colorsInput || '').trim()
+                        if (val && !(formData.colors || []).includes(val)) {
+                          setFormData({
+                            ...formData,
+                            colors: [...(formData.colors || []), val],
+                            colorsInput: ''
+                          })
+                        }
+                      }}
+                      className="px-3 py-2 rounded-md border border-gray-300 bg-gray-50 text-sm font-medium text-black hover:bg-gray-100"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {(formData.colors || []).map((color, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm text-black"
+                      >
+                        {color}
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, colors: formData.colors.filter((_, j) => j !== i) })}
+                          className="text-gray-500 hover:text-red-600 p-0.5"
+                          aria-label={`Remove ${color}`}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1.5">Add colours one by one. Shown on product page for customers to select.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-black mb-2">Return Days</label>
@@ -700,10 +841,10 @@ function AdminProducts() {
                 </button>
                 <button
                   type="submit"
-                  disabled={uploadingImages}
+                  disabled={uploadingImages || savingProduct}
                   className="px-4 py-2 rounded-md bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {uploadingImages ? 'Uploading...' : editingProduct ? 'Update Product' : 'Create Product'}
+                  {uploadingImages ? 'Uploading...' : savingProduct ? 'Saving...' : editingProduct ? 'Update Product' : 'Create Product'}
                 </button>
               </div>
             </form>

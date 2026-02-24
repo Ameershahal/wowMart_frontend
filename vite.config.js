@@ -20,10 +20,29 @@ function getNetworkIP() {
 }
 
 const networkIP = getNetworkIP()
-console.log(`🌐 Network IP detected: ${networkIP}`)
+if (process.env.NODE_ENV !== 'production') {
+  console.log(`🌐 Network IP detected: ${networkIP}`)
+}
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+          'axios': ['axios'],
+        },
+      },
+    },
+    minify: 'esbuild',
+    target: 'es2020',
+    chunkSizeWarningLimit: 500,
+  },
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
   server: {
     host: '0.0.0.0', // Listen on all interfaces
     port: 5173, // Vite default port
@@ -48,4 +67,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))

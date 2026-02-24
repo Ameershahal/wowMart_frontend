@@ -97,6 +97,8 @@ function OrderSuccess() {
                       src={item.product.images?.[0] || 'https://via.placeholder.com/80'}
                       alt={item.product.name}
                       className="w-16 h-16 object-cover rounded-lg"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="flex-grow">
                       <p className="font-semibold text-black">{item.product.name}</p>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, lazy, Suspense } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getProduct } from '../services/productService'
 import { addToCart } from '../services/cartService'
@@ -6,8 +6,8 @@ import { getWishlist, addToWishlist, removeFromWishlist } from '../services/wish
 import { getProductReviews, createReview } from '../services/reviewService'
 import CountdownTimer from '../components/CountdownTimer'
 import ImageZoom from '../components/ImageZoom'
-import Confetti from '../components/Confetti'
 import SuccessAnimation from '../components/SuccessAnimation'
+const Confetti = lazy(() => import('../components/Confetti'))
 import SEO from '../components/SEO'
 import Skeleton from '../components/Skeleton'
 import { useButtonColor } from '../hooks/useButtonColor'
@@ -72,10 +72,12 @@ function ProductDetail() {
     }
   }, [id])
 
-  // Derive colour options from product (variants or colors array)
+  // Derive colour options from product (variants or colors array from API)
   const colorOptions = product
     ? (product.variants?.find((v) => /color|colour/i.test(v.name))?.options ||
        product.colors ||
+       product.availableColors ||
+       product.colorOptions ||
        [])
     : []
 
@@ -88,7 +90,7 @@ function ProductDetail() {
       try {
         const data = await getProduct(id)
         setProduct(data)
-        const options = data.variants?.find((v) => /color|colour/i.test(v.name))?.options || data.colors || []
+        const options = data.variants?.find((v) => /color|colour/i.test(v.name))?.options || data.colors || data.availableColors || data.colorOptions || []
         if (options.length > 0) setSelectedColor(options[0])
       } catch (error) {
         console.error('Error fetching product:', error)
@@ -222,7 +224,7 @@ function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-surface-subtle">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
           <div className="flex items-center gap-2 mb-8">
             <Skeleton className="h-4 w-12" />
@@ -281,7 +283,9 @@ function ProductDetail() {
         type="product"
         product={product}
       />
-      <Confetti trigger={showConfetti} />
+      <Suspense fallback={null}>
+        <Confetti trigger={showConfetti} />
+      </Suspense>
       <SuccessAnimation show={showSuccess} message="Added to Cart!" />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
@@ -306,7 +310,8 @@ function ProductDetail() {
                 src={product.images[selectedImage]}
                 alt={product.name}
                 className="w-full h-full object-contain"
-                loading="lazy"
+                loading={selectedImage === 0 ? 'eager' : 'lazy'}
+                decoding="async"
               />
               <button
                 onClick={handleWishlistToggle}
@@ -333,11 +338,12 @@ function ProductDetail() {
                         : 'border-gray-200 hover:border-gray-400'
                     }`}
                   >
-                    <img 
-                      src={img} 
-                      alt={`${product.name} ${index + 1}`} 
-                      className="w-full h-full object-cover" 
-                      loading="lazy" 
+                    <img
+                      src={img}
+                      alt={`${product.name} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </button>
                 ))}

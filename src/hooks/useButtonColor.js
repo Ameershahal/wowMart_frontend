@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../services/api'
 
 export function useButtonColor() {
-  const [buttonColor, setButtonColor] = useState('#2563eb') // Default blue
+  const [buttonColor, setButtonColor] = useState('#EBC12B') // Default brand yellow (no blue flash before API loads)
   const [loading, setLoading] = useState(true)
 
   const fetchButtonColor = async () => {

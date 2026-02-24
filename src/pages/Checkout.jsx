@@ -8,6 +8,16 @@ import { useButtonColor } from '../hooks/useButtonColor'
 import api from '../services/api'
 import Skeleton from '../components/Skeleton'
 
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+  'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+]
+
 function Checkout() {
   const navigate = useNavigate()
   const { buttonColor } = useButtonColor()
@@ -22,10 +32,11 @@ function Checkout() {
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States'
+    country: 'India'
   })
   const [paymentMethod, setPaymentMethod] = useState('razorpay')
-  const [saveAddress, setSaveAddress] = useState(true)
+  const [addressLoaded, setAddressLoaded] = useState(false)
+  const [showAddressForm, setShowAddressForm] = useState(false)
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '',
     expiryDate: '',
@@ -79,21 +90,46 @@ function Checkout() {
     })
   }
 
-  // Load saved address on component mount
+  // Helper: address has all required fields
+  const hasCompleteSavedAddress = (data) => {
+    return !!(
+      data?.name?.trim() &&
+      data?.email?.trim() &&
+      data?.phone?.trim() &&
+      data?.street?.trim() &&
+      data?.city?.trim() &&
+      data?.state?.trim() &&
+      data?.zipCode?.trim()
+    )
+  }
+
+  // Load saved address and logged-in user info on component mount
   useEffect(() => {
     const loadSavedAddress = async () => {
       try {
-        // First try to load from localStorage (works for all users)
+        // If logged in, pre-fill name, email, phone from account so we don't ask again
+        const userJson = localStorage.getItem('user')
+        if (userJson) {
+          try {
+            const user = JSON.parse(userJson)
+            setFormData(prev => ({
+              ...prev,
+              name: user.name || user.fullName || prev.name,
+              email: (user.email || prev.email).trim().toLowerCase(),
+              phone: user.phone || prev.phone
+            }))
+          } catch {
+            // ignore parse error
+          }
+        }
+
+        // Then apply saved shipping address (localStorage or API)
         const savedAddressLocal = localStorage.getItem('savedShippingAddress')
         if (savedAddressLocal) {
           const address = JSON.parse(savedAddressLocal)
-          setFormData(prev => ({
-            ...prev,
-            ...address
-          }))
+          setFormData(prev => ({ ...prev, ...address }))
         }
 
-        // If user is logged in, try to load from API (overrides localStorage)
         const token = localStorage.getItem('token')
         if (token) {
           try {
@@ -103,7 +139,7 @@ function Checkout() {
               setFormData(prev => ({
                 ...prev,
                 name: address.name || prev.name,
-                email: response.data.user?.email || prev.email,
+                email: (response.data.user?.email || prev.email || '').trim().toLowerCase(),
                 phone: address.phone || prev.phone,
                 street: address.street || prev.street,
                 city: address.city || prev.city,
@@ -112,13 +148,14 @@ function Checkout() {
                 country: address.country || prev.country
               }))
             }
-          } catch (error) {
-            // If API call fails, just use localStorage data
-            console.log('Could not load address from server, using localStorage')
+          } catch {
+            // If API call fails, keep existing data
           }
         }
       } catch (error) {
         console.error('Error loading saved address:', error)
+      } finally {
+        setAddressLoaded(true)
       }
     }
 
@@ -173,38 +210,32 @@ function Checkout() {
 
   const handleRazorpayPayment = async (customerInfo) => {
     try {
-      // Save address if checkbox is checked (before payment processing)
-      if (saveAddress) {
-        // Always save to localStorage (works for all users)
-        const addressToSave = {
-          name: formData.name,
-          email: formData.email.trim().toLowerCase(),
-          phone: formData.phone,
-          street: formData.street,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          country: formData.country
-        }
-        localStorage.setItem('savedShippingAddress', JSON.stringify(addressToSave))
-
-        // If user is logged in, also save to user profile
-        const token = localStorage.getItem('token')
-        if (token) {
-          try {
-            await saveAddressService({
-              name: formData.name,
-              phone: formData.phone,
-              street: formData.street,
-              city: formData.city,
-              state: formData.state,
-              zipCode: formData.zipCode,
-              country: formData.country
-            })
-          } catch (error) {
-            // If saving to profile fails, at least localStorage is saved
-            console.error('Failed to save address to profile:', error)
-          }
+      // Always save address for next time (localStorage + API if logged in)
+      const addressToSave = {
+        name: formData.name,
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone,
+        street: formData.street,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        country: formData.country
+      }
+      localStorage.setItem('savedShippingAddress', JSON.stringify(addressToSave))
+      const token = localStorage.getItem('token')
+      if (token) {
+        try {
+          await saveAddressService({
+            name: formData.name,
+            phone: formData.phone,
+            street: formData.street,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+            country: formData.country
+          })
+        } catch {
+          // localStorage already saved
         }
       }
 
@@ -284,38 +315,32 @@ function Checkout() {
         paymentMethod: paymentMethod
       }
 
-      // Save address if checkbox is checked (before payment processing)
-      if (saveAddress) {
-        // Always save to localStorage (works for all users)
-        const addressToSave = {
-          name: formData.name,
-          email: formData.email.trim().toLowerCase(),
-          phone: formData.phone,
-          street: formData.street,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          country: formData.country
-        }
-        localStorage.setItem('savedShippingAddress', JSON.stringify(addressToSave))
-
-        // If user is logged in, also save to user profile
-        const token = localStorage.getItem('token')
-        if (token) {
-          try {
-            await saveAddressService({
-              name: formData.name,
-              phone: formData.phone,
-              street: formData.street,
-              city: formData.city,
-              state: formData.state,
-              zipCode: formData.zipCode,
-              country: formData.country
-            })
-          } catch (error) {
-            // If saving to profile fails, at least localStorage is saved
-            console.error('Failed to save address to profile:', error)
-          }
+      // Always save address for next time
+      const addressToSave = {
+        name: formData.name,
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone,
+        street: formData.street,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        country: formData.country
+      }
+      localStorage.setItem('savedShippingAddress', JSON.stringify(addressToSave))
+      const token = localStorage.getItem('token')
+      if (token) {
+        try {
+          await saveAddressService({
+            name: formData.name,
+            phone: formData.phone,
+            street: formData.street,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+            country: formData.country
+          })
+        } catch {
+          // localStorage already saved
         }
       }
 
@@ -340,7 +365,7 @@ function Checkout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen py-8 md:py-12 bg-slate-50">
+      <div className="min-h-screen py-8 md:py-12 bg-surface-subtle">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <Skeleton className="h-9 w-40 mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -411,57 +436,82 @@ function Checkout() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
-                <h2 className="font-display font-semibold text-slate-900 text-lg mb-5">Contact</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-slate-700 font-medium mb-1.5 text-sm">Full name *</label>
-                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} required className={inputClass} />
+              {addressLoaded && !showAddressForm && hasCompleteSavedAddress(formData) ? (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
+                  <h2 className="font-display font-semibold text-slate-900 text-lg mb-4">Shipping to</h2>
+                  <div className="text-slate-700 space-y-1">
+                    <p className="font-medium text-slate-900">{formData.name}</p>
+                    <p className="text-sm">{formData.email}</p>
+                    <p className="text-sm">{formData.phone}</p>
+                    <p className="text-sm pt-2">
+                      {formData.street}, {formData.city}, {formData.state} {formData.zipCode}, {formData.country}
+                    </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-slate-700 font-medium mb-1.5 text-sm">Email *</label>
-                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} required className={inputClass} />
-                    </div>
-                    <div>
-                      <label className="block text-slate-700 font-medium mb-1.5 text-sm">Phone *</label>
-                      <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={inputClass} />
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddressForm(true)}
+                    className="mt-4 text-sm font-medium text-primary-yellow hover:underline"
+                  >
+                    Change address
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
+                    <h2 className="font-display font-semibold text-slate-900 text-lg mb-5">Contact</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-slate-700 font-medium mb-1.5 text-sm">Full name *</label>
+                        <input type="text" name="name" value={formData.name} onChange={handleInputChange} required className={inputClass} />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-slate-700 font-medium mb-1.5 text-sm">Email *</label>
+                          <input type="email" name="email" value={formData.email} onChange={handleInputChange} required className={inputClass} />
+                        </div>
+                        <div>
+                          <label className="block text-slate-700 font-medium mb-1.5 text-sm">Phone *</label>
+                          <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={inputClass} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
-                <h2 className="font-display font-semibold text-slate-900 text-lg mb-5">Shipping address</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-slate-700 font-medium mb-1.5 text-sm">Street address *</label>
-                    <input type="text" name="street" value={formData.street} onChange={handleInputChange} required className={inputClass} />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-slate-700 font-medium mb-1.5 text-sm">City *</label>
-                      <input type="text" name="city" value={formData.city} onChange={handleInputChange} required className={inputClass} />
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
+                    <h2 className="font-display font-semibold text-slate-900 text-lg mb-5">Shipping address</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-slate-700 font-medium mb-1.5 text-sm">Street address *</label>
+                        <input type="text" name="street" value={formData.street} onChange={handleInputChange} required className={inputClass} />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-slate-700 font-medium mb-1.5 text-sm">City *</label>
+                          <input type="text" name="city" value={formData.city} onChange={handleInputChange} required className={inputClass} />
+                        </div>
+                        <div>
+                          <label className="block text-slate-700 font-medium mb-1.5 text-sm">State *</label>
+                          <select name="state" value={formData.state} onChange={handleInputChange} required className={inputClass}>
+                            <option value="">Select state</option>
+                            {INDIAN_STATES.map((state) => (
+                              <option key={state} value={state}>{state}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-slate-700 font-medium mb-1.5 text-sm">Zip code *</label>
+                          <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required className={inputClass} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 font-medium mb-1.5 text-sm">Country *</label>
+                        <input type="text" name="country" value={formData.country} onChange={handleInputChange} required className={inputClass} />
+                      </div>
+                      <p className="text-sm text-slate-500 pt-1">Address is saved automatically for your next order.</p>
                     </div>
-                    <div>
-                      <label className="block text-slate-700 font-medium mb-1.5 text-sm">State *</label>
-                      <input type="text" name="state" value={formData.state} onChange={handleInputChange} required className={inputClass} />
-                    </div>
-                    <div>
-                      <label className="block text-slate-700 font-medium mb-1.5 text-sm">Zip code *</label>
-                      <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required className={inputClass} />
-                    </div>
                   </div>
-                  <div>
-                    <label className="block text-slate-700 font-medium mb-1.5 text-sm">Country *</label>
-                    <input type="text" name="country" value={formData.country} onChange={handleInputChange} required className={inputClass} />
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer pt-1">
-                    <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} className="w-4 h-4 text-primary-yellow border-slate-300 rounded focus:ring-primary-yellow" />
-                    <span className="text-sm text-slate-600">Save this address for next time</span>
-                  </label>
-                </div>
-              </div>
+                </>
+              )}
 
               <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
                 <h2 className="font-display font-semibold text-slate-900 text-lg mb-5">Payment</h2>
@@ -537,7 +587,7 @@ function Checkout() {
                   if (!item || !item.product) return null
                   return (
                     <div key={item._id || Math.random()} className="flex items-center gap-3 pb-3 border-b border-slate-200">
-                      <img src={item.product.images?.[0] || 'https://via.placeholder.com/64'} alt={item.product.name || 'Product'} className="w-14 h-14 object-cover rounded-lg" onError={(e) => { e.target.src = 'https://via.placeholder.com/64' }} />
+                      <img src={item.product.images?.[0] || 'https://via.placeholder.com/64'} alt={item.product.name || 'Product'} className="w-14 h-14 object-cover rounded-lg" loading="lazy" decoding="async" onError={(e) => { e.target.src = 'https://via.placeholder.com/64' }} />
                       <div className="flex-grow min-w-0">
                         <p className="font-medium text-sm text-slate-900 line-clamp-1">{item.product.name || 'Product'}</p>
                         <p className="text-xs text-slate-500">Qty: {item.quantity || 0}</p>

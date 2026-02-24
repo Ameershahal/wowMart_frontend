@@ -1,8 +1,9 @@
 import axios from "axios";
-import Swal from "sweetalert2";
 
-// Use local API in development, remote in production
-const API_BASE_URL = "https://wow-yx0e.onrender.com/api";  // Production
+// Use local backend in development, Render in production
+const API_BASE_URL = import.meta.env.DEV
+  ? "http://localhost:5001/api"
+  : (import.meta.env.VITE_API_URL || "https://wow-yx0e.onrender.com/api");
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -50,6 +51,7 @@ api.interceptors.response.use(
         
         // Only show popup if not already on login page
         if (!window.location.pathname.includes('/admin/login')) {
+          const { default: Swal } = await import("sweetalert2");
           await Swal.fire({
             icon: "error",
             title: "Session Expired",
@@ -61,6 +63,7 @@ api.interceptors.response.use(
         }
       } else {
         // User session expired
+        const { default: Swal } = await import("sweetalert2");
         await Swal.fire({
           icon: "error",
           title: "Session Expired",

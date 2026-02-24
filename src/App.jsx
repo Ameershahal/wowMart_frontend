@@ -11,6 +11,7 @@ import ProtectedRoute from './utils/ProtectedRoute'
 import UnprotectedRoute from './utils/UnprotectedRoute'
 
 const Home = lazy(() => import('./pages/Home'))
+const Categories = lazy(() => import('./pages/Categories'))
 const Products = lazy(() => import('./pages/Products'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Cart = lazy(() => import('./pages/Cart'))
@@ -21,6 +22,7 @@ const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const MyOrders = lazy(() => import('./pages/MyOrders'))
+const OrderStatus = lazy(() => import('./pages/OrderStatus'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Blog = lazy(() => import('./pages/Blog'))
 const BlogDetail = lazy(() => import('./pages/BlogDetail'))
@@ -65,6 +67,7 @@ function App() {
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route path="/" element={<UserLayout><Home /></UserLayout>} />
+          <Route path="/categories" element={<UserLayout><Categories /></UserLayout>} />
           <Route path="/products" element={<UserLayout><Products /></UserLayout>} />
           <Route path="/products/:id" element={<UserLayout><ProductDetail /></UserLayout>} />
           <Route path="/blog" element={<UserLayout><Blog /></UserLayout>} />
@@ -77,6 +80,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><UserLayout><Profile /></UserLayout></ProtectedRoute>} />
           <Route path="/checkout" element={<ProtectedRoute><UserLayout><Checkout /></UserLayout></ProtectedRoute>} />
           <Route path="/my-orders" element={<ProtectedRoute><UserLayout><MyOrders /></UserLayout></ProtectedRoute>} />
+          <Route path="/my-orders/:orderNumber" element={<ProtectedRoute><UserLayout><OrderStatus /></UserLayout></ProtectedRoute>} />
           <Route path="/login" element={<UnprotectedRoute><UserLayout><Login /></UserLayout></UnprotectedRoute>} />
           <Route path="/signup" element={<UnprotectedRoute><UserLayout><Signup /></UserLayout></UnprotectedRoute>} />
           <Route path="/admin" element={<AdminRedirect />} />

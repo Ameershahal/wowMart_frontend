@@ -12,7 +12,23 @@ function MyOrders() {
   const [showEmailForm, setShowEmailForm] = useState(true)
 
   useEffect(() => {
-    // Check if email is stored in localStorage
+    // If logged in, use the user's email and skip the form
+    const userJson = localStorage.getItem('user')
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson)
+        const userEmail = (user.email || '').trim().toLowerCase()
+        if (userEmail) {
+          setEmail(userEmail)
+          setShowEmailForm(false)
+          fetchOrders(userEmail)
+          return
+        }
+      } catch {
+        // fall through to orderEmail or form
+      }
+    }
+    // Not logged in: use email from last checkout if stored
     const storedEmail = localStorage.getItem('orderEmail')
     if (storedEmail) {
       setEmail(storedEmail)
@@ -33,9 +49,7 @@ function MyOrders() {
     setError(null)
     try {
       const normalizedEmail = userEmail.trim().toLowerCase()
-      console.log('[MyOrders] Fetching orders for email:', normalizedEmail)
       const data = await getOrdersByEmail(normalizedEmail)
-      console.log('[MyOrders] Orders received:', data?.length || 0, 'orders')
       setOrders(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('[MyOrders] Error fetching orders:', err)
@@ -237,23 +251,21 @@ function MyOrders() {
                         {isWithinReturnPeriod(order.createdAt) && order.status !== 'cancelled' && (
                           <div className="mt-3">
                             <button
+                              type="button"
                               onClick={() => handleReturnRequest(order)}
-                              className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-lg font-semibold text-xs border border-red-200 hover:bg-red-100 transition-all"
+                              className="inline-flex items-center min-h-[40px] px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 transition-colors"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m5 13h-3a2 2 0 01-2-2v-4a2 2 0 012-2h3" />
-                              </svg>
-                              Return Order
+                              Request return
                             </button>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Return available for {7 - Math.floor((new Date() - new Date(order.createdAt)) / (1000 * 60 * 60 * 24))} more day(s)
+                            <p className="text-xs text-slate-500 mt-1.5">
+                              Return window: {7 - Math.floor((new Date() - new Date(order.createdAt)) / (1000 * 60 * 60 * 24))} day(s) left
                             </p>
                           </div>
                         )}
                       </div>
                       <div className="flex flex-col gap-2">
                         <Link
-                          to={`/order-success/${order.orderNumber}`}
+                          to={`/my-orders/${order.orderNumber}`}
                           className="inline-block bg-black text-yellow-400 px-4 py-2 rounded-lg font-semibold text-sm border border-black hover:bg-gray-900 transition-all whitespace-nowrap text-center"
                         >
                           View Details
