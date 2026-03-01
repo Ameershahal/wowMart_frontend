@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://wow-jrau.onrender.com/api"; 
+const BASE_URL = "https://wow-bhyw.onrender.com/api"; 
 
 /**
  * Signup API
