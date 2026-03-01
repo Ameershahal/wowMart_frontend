@@ -243,8 +243,18 @@ function Cart() {
     return sum + (item.product.price * item.quantity)
   }, 0)
 
-  const tax = subtotal * 0.1
-  const total = subtotal + tax
+  const totalSavings = cart.items.reduce((sum, item) => {
+    if (!item.product?.price) return sum
+    const orig = item.product.originalPrice
+    if (orig != null && Number(orig) > item.product.price) {
+      return sum + (Number(orig) - item.product.price) * item.quantity
+    }
+    return sum
+  }, 0)
+
+  // 18% tax is included in prices (tax-inclusive)
+  const taxIncluded = subtotal * (0.18 / 1.18)
+  const total = subtotal
 
   return (
     <div className="bg-white min-h-screen py-8">
@@ -280,9 +290,15 @@ function Cart() {
                   <span className="font-bold">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-800">
-                  <span>Tax (10%)</span>
-                  <span className="font-bold">₹{tax.toFixed(2)}</span>
+                  <span>Includes 18% tax</span>
+                  <span className="font-bold">₹{taxIncluded.toFixed(2)}</span>
                 </div>
+                {totalSavings > 0 && (
+                  <div className="flex justify-between text-green-700">
+                    <span className="font-medium">You save</span>
+                    <span className="font-bold">₹{totalSavings.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="border-t-2 border-black pt-4 flex justify-between">
                   <span className="text-xl font-black text-black">Total</span>
                   <span className="text-xl font-black text-black">₹{total.toFixed(2)}</span>
@@ -321,17 +337,11 @@ function Cart() {
               </Link>
 
               <div className="mt-6 pt-6 border-t-2 border-black">
-                <div className="flex items-center gap-2 text-sm text-gray-800 mb-2">
+                <div className="flex items-center gap-2 text-sm text-gray-800">
                   <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                   </svg>
                   <span>Secure Checkout</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-800">
-                  <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>30-Day Returns</span>
                 </div>
               </div>
             </div>

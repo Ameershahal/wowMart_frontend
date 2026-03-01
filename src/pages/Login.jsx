@@ -68,7 +68,7 @@ function Login() {
       <div className="container mx-auto max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block">
-            <h2 className="font-display text-xl font-semibold text-slate-900">WowMart</h2>
+            <h2 className="font-display text-xl font-semibold text-slate-900">wowmart</h2>
           </Link>
         </div>
 

@@ -3,6 +3,28 @@ import { Link } from 'react-router-dom'
 import api from '../../services/api'
 import cache from '../../utils/cache'
 
+// Normalize to #RRGGBB; return null if invalid
+function normalizeHex(val) {
+  if (!val || typeof val !== 'string') return null
+  let s = val.trim().replace(/^#/, '')
+  if (/^[A-Fa-f0-9]{3}$/.test(s)) s = s[0] + s[0] + s[1] + s[1] + s[2] + s[2]
+  if (!/^[A-Fa-f0-9]{6}$/.test(s)) return null
+  return '#' + s
+}
+
+// Parse stored color entry: "Name|#hex" or "#hex" -> { name, hex }
+function parseColorEntry(entry) {
+  if (!entry || typeof entry !== 'string') return { name: '', hex: '' }
+  const pipe = entry.indexOf('|')
+  if (pipe !== -1) {
+    const name = entry.slice(0, pipe).trim()
+    const hex = entry.slice(pipe + 1).trim()
+    return { name, hex: /^#[A-Fa-f0-9]{3,6}$/.test(hex) ? hex : '' }
+  }
+  if (/^#[A-Fa-f0-9]{3,6}$/.test(entry)) return { name: '', hex: entry }
+  return { name: entry, hex: '' }
+}
+
 function AdminProducts() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
@@ -35,7 +57,8 @@ function AdminProducts() {
     returnDays: '30',
     shippingCharge: '0',
     colors: [],
-    colorsInput: ''
+    colorsInput: '',
+    colorNameInput: ''
   })
 
   useEffect(() => {
@@ -105,6 +128,20 @@ function AdminProducts() {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
+    })
+  }
+
+  const addColor = () => {
+    const hex = normalizeHex(formData.colorsInput)
+    if (!hex) return
+    const name = (formData.colorNameInput || '').trim()
+    const stored = name ? `${name}|${hex}` : hex
+    if ((formData.colors || []).includes(stored)) return
+    setFormData({
+      ...formData,
+      colors: [...(formData.colors || []), stored],
+      colorsInput: '',
+      colorNameInput: ''
     })
   }
 
@@ -286,8 +323,8 @@ function AdminProducts() {
       setFormData({
         name: '', description: '', price: '', originalPrice: '', category: '',
         stock: '0', images: [], rating: '0', reviewCount: '0',
-        homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: ''
-      })
+homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: '', colorNameInput: ''
+  })
       await fetchProducts()
       // If API doesn't return colors in list, keep the colours we just saved in list state so they show when reopening edit
       if (productId && savedColors.length > 0) {
@@ -331,7 +368,8 @@ function AdminProducts() {
       returnDays: product.returnDays !== undefined ? product.returnDays.toString() : '30',
       shippingCharge: product.shippingCharge !== undefined ? product.shippingCharge.toString() : '0',
       colors: Array.isArray(product.colors) ? [...product.colors] : (product.colors ? [product.colors] : []),
-      colorsInput: ''
+      colorsInput: '',
+      colorNameInput: ''
     })
     setImageFiles([])
     setImagePreview([])
@@ -361,7 +399,8 @@ function AdminProducts() {
           returnDays: full.returnDays !== undefined ? full.returnDays.toString() : '30',
           shippingCharge: full.shippingCharge !== undefined ? full.shippingCharge.toString() : '0',
           colors: Array.isArray(full.colors) ? [...full.colors] : (full.colors ? [full.colors] : []),
-          colorsInput: ''
+          colorsInput: '',
+          colorNameInput: ''
         })
       }
     } catch (e) {
@@ -426,8 +465,8 @@ function AdminProducts() {
             setFormData({
               name: '', description: '', price: '', originalPrice: '', category: '',
               stock: '0', images: [], rating: '0', reviewCount: '0',
-              homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: ''
-            })
+homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: '', colorNameInput: ''
+  })
             setShowAddModal(true)
           }}
           className="inline-flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-md font-medium text-sm hover:bg-gray-800 transition-colors border border-gray-300"
@@ -616,66 +655,81 @@ function AdminProducts() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-black mb-2">Available colours</label>
+                  <label className="block text-xs font-medium text-black mb-2">Available colours (hex + optional name)</label>
                   <div className="flex flex-wrap gap-2 items-center">
                     <input
+                      type="color"
+                      value={normalizeHex(formData.colorsInput) || '#000000'}
+                      onChange={(e) => setFormData({ ...formData, colorsInput: e.target.value })}
+                      className="h-10 w-10 rounded border border-gray-300 cursor-pointer bg-white p-0.5"
+                      title="Pick colour"
+                    />
+                    <input
                       type="text"
-                      placeholder="Type colour and press Enter"
-                      className="flex-1 min-w-[140px] px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+                      placeholder="Hex (e.g. #FF5733)"
+                      className="flex-1 min-w-[120px] px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
                       value={formData.colorsInput ?? ''}
                       onChange={(e) => setFormData({ ...formData, colorsInput: e.target.value })}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault()
-                          const val = (formData.colorsInput || '').trim()
-                          if (val && !(formData.colors || []).includes(val)) {
-                            setFormData({
-                              ...formData,
-                              colors: [...(formData.colors || []), val],
-                              colorsInput: ''
-                            })
-                          }
+                          addColor()
+                        }
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Name (optional, e.g. Red)"
+                      className="flex-1 min-w-[120px] px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+                      value={formData.colorNameInput ?? ''}
+                      onChange={(e) => setFormData({ ...formData, colorNameInput: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          addColor()
                         }
                       }}
                     />
                     <button
                       type="button"
-                      onClick={() => {
-                        const val = (formData.colorsInput || '').trim()
-                        if (val && !(formData.colors || []).includes(val)) {
-                          setFormData({
-                            ...formData,
-                            colors: [...(formData.colors || []), val],
-                            colorsInput: ''
-                          })
-                        }
-                      }}
+                      onClick={addColor}
                       className="px-3 py-2 rounded-md border border-gray-300 bg-gray-50 text-sm font-medium text-black hover:bg-gray-100"
                     >
                       Add
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {(formData.colors || []).map((color, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm text-black"
-                      >
-                        {color}
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, colors: formData.colors.filter((_, j) => j !== i) })}
-                          className="text-gray-500 hover:text-red-600 p-0.5"
-                          aria-label={`Remove ${color}`}
+                    {(formData.colors || []).map((color, i) => {
+                      const { name, hex } = parseColorEntry(color)
+                      const displayLabel = name || hex || color
+                      return (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 text-sm text-black bg-white"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </span>
-                    ))}
+                          <span
+                            className="w-5 h-5 rounded border border-gray-300 flex-shrink-0"
+                            style={{ backgroundColor: hex ? hex : '#e5e7eb' }}
+                            title={color}
+                          />
+                          {name && <span className="font-medium">{name}</span>}
+                          {hex && <span className="font-mono text-xs text-gray-600">{hex}</span>}
+                          {!name && !hex && <span>{color}</span>}
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, colors: formData.colors.filter((_, j) => j !== i) })}
+                            className="text-gray-500 hover:text-red-600 p-0.5"
+                            aria-label={`Remove ${displayLabel}`}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </span>
+                      )
+                    })}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1.5">Add colours one by one. Shown on product page for customers to select.</p>
+                  <p className="text-xs text-gray-500 mt-1.5">Add hex and optionally a name (e.g. Red). Customers see the colour swatch and name on the product page.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-black mb-2">Return Days</label>

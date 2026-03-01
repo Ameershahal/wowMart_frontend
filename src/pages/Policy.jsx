@@ -4,7 +4,7 @@ function Policy() {
   return (
     <div className="bg-transparent">
       <SEO
-        title="Privacy Policy & Terms - WowMart"
+        title="Privacy Policy & Terms - wowmart"
         description="Read our privacy policy, terms of service, return policy, and shipping information."
         type="website"
       />
@@ -76,7 +76,7 @@ function Policy() {
             <div className="space-y-4 text-gray-700">
               <div>
                 <h3 className="text-xl font-bold text-black mb-2">Acceptance of Terms</h3>
-                <p>By accessing and using WowMart, you accept and agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
+                <p>By accessing and using wowmart, you accept and agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
               </div>
 
               <div>
@@ -96,7 +96,7 @@ function Policy() {
 
               <div>
                 <h3 className="text-xl font-bold text-black mb-2">Limitation of Liability</h3>
-                <p>WowMart shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service.</p>
+                <p>wowmart shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service.</p>
               </div>
             </div>
           </section>

@@ -249,7 +249,7 @@ function Checkout() {
         key: razorpayOrderData.key,
         amount: razorpayOrderData.amount,
         currency: razorpayOrderData.currency,
-        name: 'WowMart',
+        name: 'wowmart',
         description: 'Order Payment',
         order_id: razorpayOrderData.orderId,
         handler: async function (response) {

@@ -6,7 +6,7 @@ function Footer() {
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl py-12 sm:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           <div className="sm:col-span-2 lg:col-span-1">
-            <h3 className="font-display font-semibold text-white text-lg mb-4">WowMart</h3>
+            <h3 className="font-display font-semibold text-white text-lg mb-4">wowmart</h3>
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
               Toys and gadgets for kids and teenagers. Safe, trusted, and built for curiosity.
             </p>
@@ -48,7 +48,7 @@ function Footer() {
           </div>
         </div>
         <div className="border-t border-slate-800 mt-10 pt-8 text-center text-slate-500 text-sm">
-          &copy; {new Date().getFullYear()} WowMart. All rights reserved.
+          &copy; {new Date().getFullYear()} wowmart. All rights reserved.
         </div>
       </div>
     </footer>

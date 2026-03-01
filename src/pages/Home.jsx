@@ -9,6 +9,7 @@ import api from '../services/api'
 import bannerImage from '../images/banner.jpeg'
 import bannerImage2 from '../images/banner 2.jpeg'
 import LittleVoicesSection from '../components/LittleVoicesSection'
+import TestimonialsSection from '../components/TestimonialsSection'
 
 function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([])
@@ -205,7 +206,7 @@ function Home() {
   return (
     <div className="bg-transparent">
       <SEO
-        title="WowMart - Toys & Gadgets for Kids & Teens"
+        title="wowmart - Toys & Gadgets for Kids & Teens"
         description="Discover amazing toys and gadgets for kids and teenagers. Safe, fun, and exciting products that kids love! Shop now for the best deals."
         image="/images/LOGO PNG B.png"
         type="website"
@@ -259,7 +260,7 @@ function Home() {
               <div className="text-center mt-8 md:mt-10">
                 <Link
                   to="/categories"
-                  className="inline-flex items-center gap-2 text-slate-700 font-semibold text-sm md:text-base hover:text-slate-900 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-slate-900 text-white font-semibold text-sm md:text-base px-6 py-3 rounded-full hover:bg-slate-800 transition-colors no-underline"
                 >
                   View more categories
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -428,6 +429,7 @@ function Home() {
         </section>
       )}
 
+      <TestimonialsSection />
       <LittleVoicesSection/>
 
       <section className="py-14 md:py-20 bg-white border-t border-slate-200">

@@ -84,14 +84,14 @@ function Products() {
 
   const categoryName = categories.find(c => c.categorySlug === filters.category)?.name || '';
   const pageTitle = categoryName 
-    ? `${categoryName} - Products | WowMart`
+    ? `${categoryName} - Products | wowmart`
     : filters.search 
-    ? `Search: ${filters.search} | WowMart`
-    : 'Products | WowMart';
+    ? `Search: ${filters.search} | wowmart`
+    : 'Products | wowmart';
   const pageDescription = categoryName
     ? `Browse our collection of ${categoryName.toLowerCase()} for kids and teens. Safe, fun, and exciting products!`
     : filters.search
-    ? `Search results for "${filters.search}" on WowMart`
+    ? `Search results for "${filters.search}" on wowmart`
     : 'Browse our complete catalog of toys and gadgets for kids and teenagers. Find the perfect gift!';
 
   return (

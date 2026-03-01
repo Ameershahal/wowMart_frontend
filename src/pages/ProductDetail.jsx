@@ -12,6 +12,19 @@ import SEO from '../components/SEO'
 import Skeleton from '../components/Skeleton'
 import { useButtonColor } from '../hooks/useButtonColor'
 
+// Parse stored color: "Name|#hex" or "#hex" -> { name, hex }
+function parseColorOption(entry) {
+  if (!entry || typeof entry !== 'string') return { name: '', hex: '' }
+  const pipe = entry.indexOf('|')
+  if (pipe !== -1) {
+    const name = entry.slice(0, pipe).trim()
+    const hex = entry.slice(pipe + 1).trim()
+    return { name, hex: /^#[A-Fa-f0-9]{3,6}$/.test(hex) ? hex : '' }
+  }
+  if (/^#[A-Fa-f0-9]{3,6}$/.test(entry)) return { name: '', hex: entry }
+  return { name: entry, hex: '' }
+}
+
 function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -277,7 +290,7 @@ function ProductDetail() {
   return (
     <div className="bg-white min-h-screen">
       <SEO
-        title={`${product?.name || 'Product'} - WowMart`}
+        title={`${product?.name || 'Product'} - wowmart`}
         description={product?.description || 'Discover amazing toys and gadgets for kids and teenagers.'}
         image={product?.images?.[0] || '/images/LOGO PNG B.png'}
         type="product"
@@ -401,27 +414,40 @@ function ProductDetail() {
             {/* Colour / Variant selector */}
             {colorOptions.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <p className="text-sm text-gray-600 mb-2">
                   {product.variants?.find((v) => /color|colour/i.test(v.name))?.name || 'Colour'}
-                  {selectedColor && (
-                    <span className="font-semibold text-black ml-1">: {selectedColor}</span>
-                  )}
-                </label>
+                  {selectedColor && (() => {
+                    const { name, hex } = parseColorOption(selectedColor)
+                    const label = name || hex || selectedColor
+                    return <span className="text-gray-900 font-medium">: {label}</span>
+                  })()}
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {colorOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setSelectedColor(opt)}
-                      className={`min-h-[44px] px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                        selectedColor === opt
-                          ? 'bg-slate-900 text-white border-slate-900'
-                          : 'bg-white text-slate-800 border-slate-300 hover:border-slate-500'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
+                  {colorOptions.map((opt) => {
+                    const { name, hex } = parseColorOption(opt)
+                    const label = name || hex || opt
+                    const selected = selectedColor === opt
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setSelectedColor(opt)}
+                        title={label}
+                        className="rounded-md transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-inset hover:opacity-90"
+                      >
+                        {hex ? (
+                          <span
+                            className="block w-8 h-8 rounded-[5px]"
+                            style={{ backgroundColor: hex }}
+                          />
+                        ) : (
+                          <span className="block w-8 h-8 rounded-[5px] bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600">
+                            {label.slice(0, 1)}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}

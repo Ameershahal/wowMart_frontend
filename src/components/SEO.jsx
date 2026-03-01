@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
  * SEO Component for dynamic meta tags and structured data
  */
 function SEO({ 
-  title = 'WowMart - Toys & Gadgets for Kids & Teens',
+  title = 'wowmart - Toys & Gadgets for Kids & Teens',
   description = 'Discover amazing toys and gadgets for kids and teenagers. Safe, fun, and exciting products that kids love!',
   image = '/images/LOGO PNG B.png',
   type = 'website',
@@ -97,7 +97,7 @@ function SEO({
       jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: 'WowMart',
+        name: 'wowmart',
         description: description,
         url: window.location.origin,
         potentialAction: {

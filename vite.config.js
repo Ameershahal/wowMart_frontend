@@ -44,16 +44,16 @@ export default defineConfig(({ mode }) => ({
     drop: mode === 'production' ? ['console', 'debugger'] : [],
   },
   server: {
-    host: '0.0.0.0', // Listen on all interfaces
+    host: '127.0.0.1', // Avoid os.networkInterfaces() issues; use 0.0.0.0 for LAN
     port: 5173, // Vite default port
     strictPort: false, // Allow port change if 5173 is busy
     hmr: {
-      host: networkIP, // Use network IP for HMR
+      host: networkIP,
       port: 5173
     },
     proxy: {
       '/api': {
-        target: `http://${networkIP}:5000`,
+        target: `http://${networkIP}:5001`,
         changeOrigin: true,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => ({
         }
       },
       '/uploads': {
-        target: `http://${networkIP}:5000`,
+        target: `http://${networkIP}:5001`,
         changeOrigin: true
       }
     }

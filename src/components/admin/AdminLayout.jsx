@@ -105,7 +105,7 @@ function AdminLayout({ children }) {
                 <span className="text-black font-bold text-lg">W</span>
               </div>
               <div>
-                <h1 className="text-base font-bold text-black">WowMart</h1>
+                <h1 className="text-base font-bold text-black">wowmart</h1>
                 <p className="text-xs text-gray-500 font-medium">Admin Panel</p>
               </div>
             </div>

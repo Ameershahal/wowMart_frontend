@@ -10,7 +10,7 @@ function AdminBlogs() {
     title: '',
     content: '',
     excerpt: '',
-    author: 'WowMart Team',
+    author: 'wowmart team',
     isPublished: false,
     tags: '',
     category: 'General'
@@ -60,7 +60,7 @@ function AdminBlogs() {
         title: '',
         content: '',
         excerpt: '',
-        author: 'WowMart Team',
+        author: 'wowmart team',
         isPublished: false,
         tags: '',
         category: 'General'
@@ -79,7 +79,7 @@ function AdminBlogs() {
       title: blog.title,
       content: blog.content,
       excerpt: blog.excerpt || '',
-      author: blog.author || 'WowMart Team',
+      author: blog.author || 'wowmart team',
       isPublished: blog.isPublished || false,
       tags: blog.tags ? (Array.isArray(blog.tags) ? blog.tags.join(', ') : blog.tags) : '',
       category: blog.category || 'General'
@@ -123,7 +123,7 @@ function AdminBlogs() {
               title: '',
               content: '',
               excerpt: '',
-              author: 'WowMart Team',
+              author: 'wowmart team',
               isPublished: false,
               tags: '',
               category: 'General'

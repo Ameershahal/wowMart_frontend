@@ -71,7 +71,7 @@ function BlogDetail() {
   return (
     <div className="bg-transparent">
       <SEO
-        title={`${blog.title} - WowMart Blog`}
+        title={`${blog.title} - wowmart Blog`}
         description={blog.excerpt || blog.content.substring(0, 160)}
         type="article"
       />

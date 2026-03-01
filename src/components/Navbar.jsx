@@ -202,7 +202,7 @@ function Navbar() {
           <div className="flex items-center justify-between h-16 gap-6">
             <div className="flex items-center gap-10">
               <Link to="/" className="flex items-center flex-shrink-0">
-                <img src={logo} alt="WowMart" className="h-8 w-auto object-contain" loading="eager" decoding="async" width="120" height="32" />
+                <img src={logo} alt="wowmart" className="h-8 w-auto object-contain" loading="eager" decoding="async" width="120" height="32" />
               </Link>
               
               <div className="hidden lg:flex items-center gap-1">

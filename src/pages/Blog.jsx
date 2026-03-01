@@ -40,7 +40,7 @@ function Blog() {
   return (
     <div className="bg-transparent">
       <SEO
-        title="Blog - WowMart"
+        title="Blog - wowmart"
         description="Read our latest blog posts about toys, gadgets, and fun activities for kids!"
         type="website"
       />

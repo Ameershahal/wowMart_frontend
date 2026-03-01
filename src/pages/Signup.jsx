@@ -133,7 +133,7 @@ function Signup() {
               Create Account
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              Join WowMart and start shopping today
+              Join wowmart and start shopping today
             </p>
           </div>
 
