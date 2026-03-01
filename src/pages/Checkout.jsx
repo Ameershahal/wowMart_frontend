@@ -423,8 +423,17 @@ function Checkout() {
     if (!item || !item.product || !item.product.price) return sum
     return sum + (item.product.price * item.quantity)
   }, 0)
-  const tax = subtotal * 0.1
-  const total = subtotal + tax
+  const totalSavings = cart.items.reduce((sum, item) => {
+    if (!item.product?.price) return sum
+    const orig = item.product.originalPrice
+    if (orig != null && Number(orig) > item.product.price) {
+      return sum + (Number(orig) - item.product.price) * item.quantity
+    }
+    return sum
+  }, 0)
+  // 18% tax included in prices
+  const taxIncluded = subtotal * (0.18 / 1.18)
+  const total = subtotal
 
   const inputClass = "w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-yellow/30 focus:border-primary-yellow bg-white"
 
@@ -599,7 +608,10 @@ function Checkout() {
               </div>
               <div className="space-y-2 pt-3 border-t border-slate-200">
                 <div className="flex justify-between text-slate-600 text-sm"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between text-slate-600 text-sm"><span>Tax (10%)</span><span>₹{tax.toFixed(2)}</span></div>
+                {totalSavings > 0 && (
+                  <div className="flex justify-between text-green-700 text-sm"><span className="font-medium">You save</span><span className="font-semibold">₹{totalSavings.toFixed(2)}</span></div>
+                )}
+                <div className="flex justify-between text-slate-600 text-sm"><span>Includes 18% tax</span><span>₹{taxIncluded.toFixed(2)}</span></div>
                 <div className="flex justify-between pt-3 border-t border-slate-200">
                   <span className="font-display font-semibold text-slate-900">Total</span>
                   <span className="font-display font-semibold text-slate-900">₹{total.toFixed(2)}</span>

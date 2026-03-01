@@ -56,6 +56,7 @@ function AdminProducts() {
     freeShipping: true,
     returnDays: '30',
     shippingCharge: '0',
+    codAvailable: false,
     colors: [],
     colorsInput: '',
     colorNameInput: ''
@@ -252,7 +253,10 @@ function AdminProducts() {
         allImages = editingProduct.images
       }
 
-      // Ensure freeShipping and returnDays are properly set
+      // Ensure freeShipping, codAvailable, and returnDays are properly set
+      const codAvailableValue = formData.codAvailable !== undefined && formData.codAvailable !== null
+        ? Boolean(formData.codAvailable)
+        : false;
       const freeShippingValue = formData.freeShipping !== undefined && formData.freeShipping !== null 
         ? Boolean(formData.freeShipping) 
         : true;
@@ -289,6 +293,7 @@ function AdminProducts() {
         freeShipping: freeShippingValue,
         returnDays: returnDaysValue,
         shippingCharge: shippingChargeValue,
+        codAvailable: codAvailableValue,
         colors: colorsArray
       }
 
@@ -323,14 +328,14 @@ function AdminProducts() {
       setFormData({
         name: '', description: '', price: '', originalPrice: '', category: '',
         stock: '0', images: [], rating: '0', reviewCount: '0',
-homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: '', colorNameInput: ''
+homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', codAvailable: false, colors: [], colorsInput: '', colorNameInput: ''
   })
       await fetchProducts()
-      // If API doesn't return colors in list, keep the colours we just saved in list state so they show when reopening edit
-      if (productId && savedColors.length > 0) {
+      // Merge saved product (including codAvailable, colors) into list so edit form shows correct values
+      if (productId && updatedProduct) {
         setProducts((prev) =>
           prev.map((p) =>
-            p._id === productId ? { ...p, colors: savedColors } : p
+            p._id === productId ? { ...p, ...updatedProduct, colors: savedColors.length > 0 ? savedColors : (updatedProduct.colors || p.colors) } : p
           )
         )
       }
@@ -367,6 +372,7 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
       freeShipping: product.freeShipping !== undefined ? Boolean(product.freeShipping) : true,
       returnDays: product.returnDays !== undefined ? product.returnDays.toString() : '30',
       shippingCharge: product.shippingCharge !== undefined ? product.shippingCharge.toString() : '0',
+      codAvailable: product.codAvailable !== undefined ? Boolean(product.codAvailable) : false,
       colors: Array.isArray(product.colors) ? [...product.colors] : (product.colors ? [product.colors] : []),
       colorsInput: '',
       colorNameInput: ''
@@ -398,6 +404,7 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
           freeShipping: full.freeShipping !== undefined ? Boolean(full.freeShipping) : true,
           returnDays: full.returnDays !== undefined ? full.returnDays.toString() : '30',
           shippingCharge: full.shippingCharge !== undefined ? full.shippingCharge.toString() : '0',
+          codAvailable: full.codAvailable !== undefined ? Boolean(full.codAvailable) : false,
           colors: Array.isArray(full.colors) ? [...full.colors] : (full.colors ? [full.colors] : []),
           colorsInput: '',
           colorNameInput: ''
@@ -426,8 +433,10 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
             freeShipping: full.freeShipping !== undefined ? Boolean(full.freeShipping) : true,
             returnDays: full.returnDays !== undefined ? full.returnDays.toString() : '30',
             shippingCharge: full.shippingCharge !== undefined ? full.shippingCharge.toString() : '0',
+            codAvailable: full.codAvailable !== undefined ? Boolean(full.codAvailable) : false,
             colors: Array.isArray(full.colors) ? [...full.colors] : (full.colors ? [full.colors] : []),
-            colorsInput: ''
+            colorsInput: '',
+            colorNameInput: ''
           })
         }
       } catch (_) {}
@@ -465,7 +474,7 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
             setFormData({
               name: '', description: '', price: '', originalPrice: '', category: '',
               stock: '0', images: [], rating: '0', reviewCount: '0',
-homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', colors: [], colorsInput: '', colorNameInput: ''
+homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0', codAvailable: false, colors: [], colorsInput: '', colorNameInput: ''
   })
             setShowAddModal(true)
           }}
@@ -770,6 +779,20 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
                   <span className="text-sm font-medium text-black">Free Shipping</span>
                 </label>
                 <p className="text-xs text-gray-500 mt-1 ml-6">Enable free shipping for this product (overrides shipping charge)</p>
+              </div>
+
+              <div>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="codAvailable"
+                    checked={formData.codAvailable === true}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, codAvailable: e.target.checked }))}
+                    className="rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
+                  />
+                  <span className="text-sm font-medium text-black">COD available</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-6">Cash on Delivery available for this product</p>
               </div>
 
               <div>
