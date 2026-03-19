@@ -5,6 +5,43 @@ import { getWishlist, addToWishlist, removeFromWishlist } from '../services/wish
 import SuccessAnimation from './SuccessAnimation'
 import { useButtonColor } from '../hooks/useButtonColor'
 
+let sharedCart = null
+let sharedCartPromise = null
+let sharedWishlist = null
+let sharedWishlistPromise = null
+
+const normalizeProductId = (item) => String(item?.product?._id || item?.product || '')
+
+const getSharedCart = async () => {
+  if (sharedCart) return sharedCart
+  if (!sharedCartPromise) {
+    sharedCartPromise = getCart()
+      .then((data) => {
+        sharedCart = data || { items: [] }
+        return sharedCart
+      })
+      .finally(() => {
+        sharedCartPromise = null
+      })
+  }
+  return sharedCartPromise
+}
+
+const getSharedWishlist = async () => {
+  if (sharedWishlist) return sharedWishlist
+  if (!sharedWishlistPromise) {
+    sharedWishlistPromise = getWishlist()
+      .then((data) => {
+        sharedWishlist = data || { items: [] }
+        return sharedWishlist
+      })
+      .finally(() => {
+        sharedWishlistPromise = null
+      })
+  }
+  return sharedWishlistPromise
+}
+
 function ProductCard({ product }) {
   const [cartItem, setCartItem] = useState(null)
   const [isInWishlist, setIsInWishlist] = useState(false)
@@ -45,19 +82,12 @@ function ProductCard({ product }) {
 
   const fetchCartItem = async () => {
     try {
-      const cart = await getCart()
+      const cart = await getSharedCart()
       if (!cart || !cart.items) {
         setCartItem(null)
         return
       }
-      // Try multiple ways to match the product ID
-      const item = cart.items.find(item => {
-        if (!item || !item.product) return false
-        const productId = item.product._id || item.product
-        const currentProductId = product._id
-        // Compare as strings to handle ObjectId vs string mismatches
-        return String(productId) === String(currentProductId)
-      })
+      const item = cart.items.find((item) => normalizeProductId(item) === String(product._id))
       setCartItem(item || null)
     } catch (error) {
       console.error('Error fetching cart:', error)
@@ -67,8 +97,8 @@ function ProductCard({ product }) {
 
   const fetchWishlistStatus = async () => {
     try {
-      const wishlist = await getWishlist()
-      const item = wishlist.items.find(item => item.product._id === product._id)
+      const wishlist = await getSharedWishlist()
+      const item = wishlist.items.find((item) => normalizeProductId(item) === String(product._id))
       setIsInWishlist(!!item)
       setWishlistItemId(item?._id || null)
     } catch (error) {
@@ -83,10 +113,14 @@ function ProductCard({ product }) {
     try {
       if (isInWishlist) {
         await removeFromWishlist(wishlistItemId)
+        if (sharedWishlist?.items) {
+          sharedWishlist.items = sharedWishlist.items.filter((item) => String(item?._id) !== String(wishlistItemId))
+        }
         setIsInWishlist(false)
         setWishlistItemId(null)
       } else {
         const wishlist = await addToWishlist(product._id)
+        sharedWishlist = wishlist
         const item = wishlist.items.find(item => item.product._id === product._id)
         setIsInWishlist(true)
         setWishlistItemId(item?._id || null)
@@ -104,12 +138,8 @@ function ProductCard({ product }) {
     setLoading(true)
     try {
       await addToCart(product._id, 1)
-      // Wait a bit for the backend to process, then fetch
-      await new Promise(resolve => setTimeout(resolve, 300))
-      // Fetch the updated cart
-      await fetchCartItem()
-      // Try one more time if not found
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // Invalidate shared cart once and refresh after write.
+      sharedCart = null
       await fetchCartItem()
       // Notify navbar to update cart count
       window.dispatchEvent(new Event('cartUpdated'))
@@ -130,8 +160,7 @@ function ProductCard({ product }) {
     setLoading(true)
     try {
       await updateCartItem(cartItem._id, cartItem.quantity + 1)
-      // Wait a bit for the backend to process
-      await new Promise(resolve => setTimeout(resolve, 100))
+      sharedCart = null
       await fetchCartItem()
       // Notify navbar to update cart count
       window.dispatchEvent(new Event('cartUpdated'))
@@ -154,8 +183,7 @@ function ProductCard({ product }) {
       } else {
         await removeFromCart(cartItem._id)
       }
-      // Wait a bit for the backend to process
-      await new Promise(resolve => setTimeout(resolve, 100))
+      sharedCart = null
       await fetchCartItem()
       // Notify navbar to update cart count
       window.dispatchEvent(new Event('cartUpdated'))

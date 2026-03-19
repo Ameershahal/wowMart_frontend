@@ -43,6 +43,8 @@ function Checkout() {
     cvv: '',
     cardholderName: ''
   })
+  const [couponInfo, setCouponInfo] = useState(null) // { code, discountAmount }
+  const [couponError, setCouponError] = useState('')
 
   // Format card number with spaces
   const formatCardNumber = (value) => {
@@ -186,6 +188,67 @@ function Checkout() {
     }
     fetchCart()
   }, [navigate])
+
+  // Re-validate any coupon applied on the product page using current cart subtotal
+  useEffect(() => {
+    if (!cart || !cart.items || cart.items.length === 0) {
+      setCouponInfo(null)
+      setCouponError('')
+      return
+    }
+    let cancelled = false
+    const stored = (() => {
+      try {
+        return localStorage.getItem('appliedCoupon')
+      } catch {
+        return null
+      }
+    })()
+    if (!stored) {
+      setCouponInfo(null)
+      setCouponError('')
+      return
+    }
+    let parsed
+    try {
+      parsed = JSON.parse(stored)
+    } catch {
+      parsed = null
+    }
+    const code = parsed?.code
+    if (!code) return
+
+    const run = async () => {
+      try {
+        const subtotalForCoupon = cart.items.reduce((sum, item) => {
+          if (!item || !item.product || !item.product.price) return sum
+          return sum + (item.product.price * item.quantity)
+        }, 0)
+        const res = await api.post('/coupons/validate', {
+          code,
+          subtotal: subtotalForCoupon
+        })
+        if (cancelled) return
+        const discountAmount = res.data?.discountAmount || 0
+        if (discountAmount > 0) {
+          setCouponInfo({ code, discountAmount })
+          setCouponError('')
+        } else {
+          setCouponInfo(null)
+        }
+      } catch (err) {
+        if (cancelled) return
+        setCouponInfo(null)
+        const msg = err.response?.data?.message
+        if (msg) setCouponError(msg)
+      }
+    }
+    run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [cart])
 
   // Helper function to convert hex to RGB
   const hexToRgb = (hex) => {
@@ -431,9 +494,10 @@ function Checkout() {
     }
     return sum
   }, 0)
+  const couponDiscount = couponInfo?.discountAmount || 0
   // 18% tax included in prices
   const taxIncluded = subtotal * (0.18 / 1.18)
-  const total = subtotal
+  const total = Math.max(0, subtotal - couponDiscount)
 
   const inputClass = "w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-yellow/30 focus:border-primary-yellow bg-white"
 
@@ -607,11 +671,26 @@ function Checkout() {
                 })}
               </div>
               <div className="space-y-2 pt-3 border-t border-slate-200">
-                <div className="flex justify-between text-slate-600 text-sm"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
+                <div className="flex justify-between text-slate-600 text-sm">
+                  <span>Subtotal</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
+                </div>
                 {totalSavings > 0 && (
-                  <div className="flex justify-between text-green-700 text-sm"><span className="font-medium">You save</span><span className="font-semibold">₹{totalSavings.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-green-700 text-sm">
+                    <span className="font-medium">You save on offers</span>
+                    <span className="font-semibold">₹{totalSavings.toFixed(2)}</span>
+                  </div>
                 )}
-                <div className="flex justify-between text-slate-600 text-sm"><span>Includes 18% tax</span><span>₹{taxIncluded.toFixed(2)}</span></div>
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-green-700 text-sm">
+                    <span className="font-medium">Coupon discount</span>
+                    <span className="font-semibold">₹{couponDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-slate-600 text-sm">
+                  <span>Includes 18% tax</span>
+                  <span>₹{taxIncluded.toFixed(2)}</span>
+                </div>
                 <div className="flex justify-between pt-3 border-t border-slate-200">
                   <span className="font-display font-semibold text-slate-900">Total</span>
                   <span className="font-display font-semibold text-slate-900">₹{total.toFixed(2)}</span>

@@ -86,16 +86,18 @@ function Navbar() {
     fetchCartCount()
     fetchWishlistCount()
     
-    // Poll only when tab is visible; cart/wishlist also update via cartUpdated event
-    const interval = setInterval(() => {
+    // Refresh when tab comes back to foreground
+    const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchCartCount()
         fetchWishlistCount()
       }
-    }, 20000)
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
-      clearInterval(interval)
       window.removeEventListener('cartUpdated', handleCartUpdate)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
@@ -111,45 +113,6 @@ function Navbar() {
     setIsMobileMenuOpen(false)
     setIsProfileMenuOpen(false)
     setIsSearchOpen(false)
-    
-    // Immediately refresh cart count when location changes
-    const refreshCartCount = async () => {
-      try {
-        const cart = await getCart()
-        if (!cart || !cart.items || cart.items.length === 0) {
-          setCartCount(0)
-          return
-        }
-        
-        // Filter out invalid items
-        const validItems = cart.items.filter(item => 
-          item && 
-          item.product && 
-          (item.product._id || item.product) && 
-          item.quantity > 0
-        )
-        
-        if (validItems.length === 0) {
-          setCartCount(0)
-          return
-        }
-        
-        const count = validItems.reduce((sum, item) => {
-          return sum + (item.quantity || 0)
-        }, 0)
-        setCartCount(count)
-      } catch (error) {
-        console.error('Error fetching cart:', error)
-        setCartCount(0)
-      }
-    }
-    
-    // Small delay to ensure cart operations are complete
-    const timeoutId = setTimeout(() => {
-      refreshCartCount()
-    }, 100)
-    
-    return () => clearTimeout(timeoutId)
   }, [location])
 
   useEffect(() => {

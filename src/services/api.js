@@ -10,7 +10,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 second timeout
+
 });
 
 // Attach token from localStorage automatically (user or admin)

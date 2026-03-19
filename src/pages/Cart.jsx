@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getCart, updateCartItem, removeFromCart } from '../services/cartService'
 import { useButtonColor } from '../hooks/useButtonColor'
 import Skeleton from '../components/Skeleton'
+import api from '../services/api'
 
 // Row with local quantity so +/- feel instant
 function CartItemRow({ item, index, updatingId, onQuantityChange, onRemove }) {
@@ -106,6 +107,8 @@ function Cart() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [updatingId, setUpdatingId] = useState(null)
+   const [couponInfo, setCouponInfo] = useState(null) // { code, discountAmount }
+   const [couponError, setCouponError] = useState('')
   const navigate = useNavigate()
   const { buttonColor } = useButtonColor()
 
@@ -122,6 +125,70 @@ function Cart() {
   useEffect(() => {
     fetchCart()
   }, [])
+
+  // Re-validate any coupon applied on the product page using current cart subtotal
+  useEffect(() => {
+    if (!cart || !cart.items || cart.items.length === 0) {
+      setCouponInfo(null)
+      setCouponError('')
+      return
+    }
+
+    let stored = null
+    try {
+      stored = localStorage.getItem('appliedCoupon')
+    } catch {
+      stored = null
+    }
+    if (!stored) {
+      setCouponInfo(null)
+      setCouponError('')
+      return
+    }
+
+    let parsed
+    try {
+      parsed = JSON.parse(stored)
+    } catch {
+      parsed = null
+    }
+    const code = parsed?.code
+    if (!code) return
+
+    let cancelled = false
+
+    const run = async () => {
+      try {
+        const subtotalForCoupon = cart.items.reduce((sum, item) => {
+          if (!item || !item.product || !item.product.price) return sum
+          return sum + (item.product.price * item.quantity)
+        }, 0)
+        const res = await api.post('/coupons/validate', {
+          code,
+          subtotal: subtotalForCoupon
+        })
+        if (cancelled) return
+        const discountAmount = res.data?.discountAmount || 0
+        if (discountAmount > 0) {
+          setCouponInfo({ code, discountAmount })
+          setCouponError('')
+        } else {
+          setCouponInfo(null)
+        }
+      } catch (err) {
+        if (cancelled) return
+        setCouponInfo(null)
+        const msg = err.response?.data?.message
+        if (msg) setCouponError(msg)
+      }
+    }
+
+    run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [cart])
 
   const fetchCart = async () => {
     try {
@@ -252,9 +319,10 @@ function Cart() {
     return sum
   }, 0)
 
+  const couponDiscount = couponInfo?.discountAmount || 0
   // 18% tax is included in prices (tax-inclusive)
   const taxIncluded = subtotal * (0.18 / 1.18)
-  const total = subtotal
+  const total = Math.max(0, subtotal - couponDiscount)
 
   return (
     <div className="bg-white min-h-screen py-8">
@@ -295,8 +363,16 @@ function Cart() {
                 </div>
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-green-700">
-                    <span className="font-medium">You save</span>
+                    <span className="font-medium">You save on offers</span>
                     <span className="font-bold">₹{totalSavings.toFixed(2)}</span>
+                  </div>
+                )}
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-green-700">
+                    <span className="font-medium">
+                      Coupon discount{couponInfo?.code ? ` (${couponInfo.code})` : ''}
+                    </span>
+                    <span className="font-bold">₹{couponDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="border-t-2 border-black pt-4 flex justify-between">

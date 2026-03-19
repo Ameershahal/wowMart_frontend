@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getFeaturedProducts, getProducts } from '../services/productService'
+import { getFeaturedProducts } from '../services/productService'
 import ProductCard from '../components/ProductCard'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
 import BannerSlider from '../components/BannerSlider'
@@ -50,22 +50,33 @@ function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch section names
-        try {
-          const sectionsResponse = await api.get('/settings/homepage-sections')
-          if (sectionsResponse.data.sections) {
-            setSectionNames(sectionsResponse.data.sections)
-          }
-        } catch (sectionError) {
-          console.error('Error fetching section names:', sectionError)
-          // Use defaults if API fails
+        const featuredPromise = api
+          .get('/products/featured/list?section=Featured Products')
+          .then((res) => res.data)
+          .catch(() => getFeaturedProducts())
+
+        const [
+          sectionsResult,
+          categoriesResult,
+          bannersResult,
+          featuredResult,
+          reviewsResult
+        ] = await Promise.allSettled([
+          api.get('/settings/homepage-sections'),
+          api.get('/categories?homepage=true'),
+          api.get('/banners'),
+          featuredPromise,
+          api.get('/reviews/featured')
+        ])
+
+        if (sectionsResult.status === 'fulfilled' && sectionsResult.value?.data?.sections) {
+          setSectionNames(sectionsResult.value.data.sections)
         }
 
-        // Fetch categories for homepage (only those marked to show on homepage, limit 4)
-        const categoriesResponse = await api.get('/categories?homepage=true')
         // Filter out specific categories: toys, gadgets, building-sets, electronics, games
         const excludedCategorySlugs = ['toys', 'gadgets', 'building-sets', 'electronics', 'games']
-        const filteredCategories = (categoriesResponse.data || []).filter(category => {
+        const categoriesData = categoriesResult.status === 'fulfilled' ? (categoriesResult.value?.data || []) : []
+        const filteredCategories = categoriesData.filter(category => {
           const slug = category.categorySlug?.toLowerCase() || ''
           const name = category.name?.toLowerCase() || ''
           return !excludedCategorySlugs.some(excluded => 
@@ -74,51 +85,35 @@ function Home() {
         })
         setCategories(filteredCategories)
         
-        // Fetch active banners
-        try {
-          const bannersResponse = await api.get('/banners')
-          if (bannersResponse.data && bannersResponse.data.length > 0) {
-            const formattedBanners = bannersResponse.data.map(banner => ({
-              desktopImageUrl: banner.desktopImageUrl || banner.imageUrl,
-              mobileImageUrl: banner.mobileImageUrl || banner.imageUrl,
-              src: banner.imageUrl, // Fallback
-              alt: `Banner ${banner.order + 1}`,
-              linkUrl: banner.linkUrl || '/products',
-              buttonText: banner.buttonText || 'Shop Now',
-              buttonColor: banner.buttonColor || undefined
-            }))
-            setBanners(formattedBanners)
-          } else {
-            // Fallback to default banners if no banners found
-            setBanners([
-              { src: bannerImage, alt: 'Banner 1', linkUrl: '/products', buttonText: 'Shop Now' },
-              { src: bannerImage2, alt: 'Banner 2', linkUrl: '/products', buttonText: 'Shop Now' }
-            ])
-          }
-        } catch (bannerError) {
-          console.error('Error fetching banners:', bannerError)
-          // Fallback to default banners on error
+        const bannersData = bannersResult.status === 'fulfilled' ? (bannersResult.value?.data || []) : []
+        if (bannersData.length > 0) {
+          const formattedBanners = bannersData.map(banner => ({
+            desktopImageUrl: banner.desktopImageUrl || banner.imageUrl,
+            mobileImageUrl: banner.mobileImageUrl || banner.imageUrl,
+            src: banner.imageUrl, // Fallback
+            alt: `Banner ${banner.order + 1}`,
+            linkUrl: banner.linkUrl || '/products',
+            buttonText: banner.buttonText || 'Shop Now',
+            buttonColor: banner.buttonColor || undefined
+          }))
+          setBanners(formattedBanners)
+        } else {
           setBanners([
             { src: bannerImage, alt: 'Banner 1', linkUrl: '/products', buttonText: 'Shop Now' },
             { src: bannerImage2, alt: 'Banner 2', linkUrl: '/products', buttonText: 'Shop Now' }
           ])
         }
-        
-        // Fetch featured products
-        const featured = await api.get('/products/featured/list?section=Featured Products')
-          .then(res => res.data)
-          .catch(() => api.get('/products/featured/list').then(res => res.data))
-        
-        setFeaturedProducts(featured)
+
+        if (featuredResult.status === 'fulfilled') {
+          setFeaturedProducts(Array.isArray(featuredResult.value) ? featuredResult.value : [])
+        } else {
+          setFeaturedProducts([])
+        }
         setTrendingCollections({})
 
-        // Fetch featured reviews
-        try {
-          const reviewsResponse = await api.get('/reviews/featured')
-          setReviews(reviewsResponse.data || [])
-          setCurrentReviewIndex(0) // Reset to first review when reviews are fetched
-        } catch (reviewError) {
-          console.error('Error fetching reviews:', reviewError)
+        if (reviewsResult.status === 'fulfilled') {
+          setReviews(reviewsResult.value?.data || [])
+          setCurrentReviewIndex(0)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -290,6 +285,10 @@ function Home() {
               {[...Array(8)].map((_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
+            </div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="text-center py-10 text-slate-500">
+              Featured products are currently unavailable.
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">

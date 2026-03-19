@@ -80,6 +80,15 @@ function AdminLayout({ children }) {
       )
     },
     { 
+      path: '/admin/coupons', 
+      label: 'Coupons', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h10a2 2 0 012 2v6a2 2 0 01-2 2H9m-4 0h.01M5 7h.01M7 12h10" />
+        </svg>
+      )
+    },
+    { 
       path: '/admin/settings', 
       label: 'Settings', 
       icon: (
@@ -189,6 +198,7 @@ function AdminLayout({ children }) {
                   {location.pathname === '/admin/banners' && 'Banners'}
                   {location.pathname === '/admin/categories' && 'Categories'}
                   {location.pathname === '/admin/blogs' && 'Blogs'}
+                  {location.pathname === '/admin/coupons' && 'Coupons'}
                   {location.pathname === '/admin/settings' && 'Settings'}
                 </h2>
               </div>

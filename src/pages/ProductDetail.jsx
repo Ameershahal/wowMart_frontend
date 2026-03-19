@@ -4,6 +4,7 @@ import { getProduct } from '../services/productService'
 import { addToCart } from '../services/cartService'
 import { getWishlist, addToWishlist, removeFromWishlist } from '../services/wishlistService'
 import { getProductReviews, createReview } from '../services/reviewService'
+import api from '../services/api'
 import CountdownTimer from '../components/CountdownTimer'
 import ImageZoom from '../components/ImageZoom'
 import SuccessAnimation from '../components/SuccessAnimation'
@@ -212,18 +213,27 @@ function ProductDetail() {
       setCouponError('Please enter a coupon code')
       return
     }
+    if (!product) return
+
     setCouponError('')
     setCouponLoading(true)
     try {
-      // Demo: accept common codes; replace with API call when backend supports coupons
-      const demoCodes = { SAVE10: '10% off', SAVE5: '5% off', WOW5: '₹50 off', EXTRA5: 'Extra 5% off' }
-      if (demoCodes[code]) {
+      const subtotal = (product.price || 0) * (quantity || 1)
+      const res = await api.post('/coupons/validate', { code, subtotal })
+      const discount = res.data?.discountAmount || 0
+      if (discount > 0) {
         setCouponApplied(true)
+        setCouponError('')
+        try {
+          localStorage.setItem('appliedCoupon', JSON.stringify({ code }))
+        } catch (_) {}
       } else {
         setCouponError('Invalid or expired coupon code')
       }
     } catch (err) {
-      setCouponError('Could not apply coupon. Try again.')
+      const msg = err.response?.data?.message || 'Invalid or expired coupon code'
+      setCouponError(msg)
+      setCouponApplied(false)
     } finally {
       setCouponLoading(false)
     }
@@ -233,6 +243,9 @@ function ProductDetail() {
     setCouponApplied(false)
     setCouponCode('')
     setCouponError('')
+    try {
+      localStorage.removeItem('appliedCoupon')
+    } catch (_) {}
   }
 
   if (loading) {
