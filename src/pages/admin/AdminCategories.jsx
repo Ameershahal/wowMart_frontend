@@ -31,7 +31,7 @@ function AdminCategories() {
     // Otherwise, prepend the API base URL for local uploads
     const API_BASE = import.meta.env.DEV 
       ? 'http://localhost:5000' 
-      : 'https://wow-bhyw.onrender.com'
+      : 'https://wow-aovo.onrender.com'
     return `${API_BASE}${imageUrl}`
   }
 

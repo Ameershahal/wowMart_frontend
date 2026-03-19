@@ -216,7 +216,7 @@ function AdminBanners() {
             <div key={banner._id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="aspect-video bg-gray-100 relative">
                 <img
-                  src={`https://wow-bhyw.onrender.com${banner.imageUrl}`}
+                  src={`https://wow-aovo.onrender.com${banner.imageUrl}`}
                   alt="Banner"
                   className="w-full h-full object-cover"
                   onError={(e) => {

@@ -3,7 +3,7 @@ import axios from "axios";
 // Use local backend in development, Render in production
 const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:5001/api"
-  : (import.meta.env.VITE_API_URL || "https://wow-bhyw.onrender.com/api");
+  : (import.meta.env.VITE_API_URL || "https://wow-aovo.onrender.com/api");
 
 const api = axios.create({
   baseURL: API_BASE_URL,
