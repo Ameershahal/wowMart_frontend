@@ -3,10 +3,11 @@ import api from './api'
 /**
  * Create Razorpay order
  */
-export const createRazorpayOrder = async (sessionId, customerInfo) => {
+export const createRazorpayOrder = async (sessionId, customerInfo, couponCode) => {
   const response = await api.post('/razorpay/create-order', {
     sessionId,
-    customerInfo
+    customerInfo,
+    ...(couponCode ? { couponCode } : {}),
   })
   return response.data
 }

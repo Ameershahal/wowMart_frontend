@@ -4,11 +4,12 @@ const getSessionId = () => {
   return localStorage.getItem('sessionId')
 }
 
-export const createOrder = async (customerInfo) => {
+export const createOrder = async (customerInfo, couponCode) => {
   const sessionId = getSessionId()
   const response = await api.post('/orders', {
     sessionId,
-    customerInfo
+    customerInfo,
+    ...(couponCode ? { couponCode } : {}),
   })
   return response.data
 }

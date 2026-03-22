@@ -305,7 +305,7 @@ function Checkout() {
       const sessionId = getSessionId()
       
       // Create Razorpay order
-      const razorpayOrderData = await createRazorpayOrder(sessionId, customerInfo)
+      const razorpayOrderData = await createRazorpayOrder(sessionId, customerInfo, couponInfo?.code)
       
       // Initialize Razorpay checkout
       const options = {
@@ -323,7 +323,8 @@ function Checkout() {
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
               sessionId,
-              customerInfo
+              customerInfo,
+              ...(couponInfo?.code ? { couponCode: couponInfo.code } : {}),
             })
             
             // Store email in localStorage for My Orders page
@@ -414,7 +415,7 @@ function Checkout() {
       }
 
       // Handle other payment methods (card, cod, bank)
-      const order = await createOrder(customerInfo)
+      const order = await createOrder(customerInfo, couponInfo?.code)
       // Store email in localStorage for My Orders page
       localStorage.setItem('orderEmail', formData.email.trim().toLowerCase())
       navigate(`/order-success/${order.orderNumber}`)
@@ -687,9 +688,12 @@ function Checkout() {
                     <span className="font-semibold">₹{couponDiscount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-slate-600 text-sm">
-                  <span>Includes 18% tax</span>
-                  <span>₹{taxIncluded.toFixed(2)}</span>
+                <div className="flex justify-between text-slate-600 text-sm gap-3">
+                  <span>
+                    <span className="block">GST (18%)</span>
+                    <span className="block text-[11px] font-normal text-slate-400 mt-0.5">Included in subtotal — not added again</span>
+                  </span>
+                  <span className="tabular-nums flex-shrink-0">₹{taxIncluded.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-3 border-t border-slate-200">
                   <span className="font-display font-semibold text-slate-900">Total</span>

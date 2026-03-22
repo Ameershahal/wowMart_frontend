@@ -358,8 +358,11 @@ function Cart() {
                   <span className="font-bold">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-800">
-                  <span>Includes 18% tax</span>
-                  <span className="font-bold">₹{taxIncluded.toFixed(2)}</span>
+                  <span>
+                    <span className="block">GST (18%)</span>
+                    <span className="block text-[11px] font-normal text-slate-500 mt-0.5">Included in subtotal — not added again</span>
+                  </span>
+                  <span className="font-bold tabular-nums">₹{taxIncluded.toFixed(2)}</span>
                 </div>
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-green-700">

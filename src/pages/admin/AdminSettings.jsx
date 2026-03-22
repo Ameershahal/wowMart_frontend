@@ -717,7 +717,7 @@ function AdminSettings() {
             {/* Info Box */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Enter the direct video URL (e.g., https://example.com/video.mp4). Videos will be displayed in the "Little Voices Speak!" section on the homepage in the order listed here. At least one video is required.
+                <strong>Note:</strong> Use a <strong>direct MP4/WebM link</strong> (URL ends in .mp4 or .webm). YouTube or page links will not play in the site player. Host files on Cloudinary, S3, or your server. At least one valid URL is required.
               </p>
             </div>
           </div>

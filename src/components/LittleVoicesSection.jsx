@@ -1,31 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
 import api from "../services/api";
-
-const defaultVideos = [
-  { id: 1, src: "https://drftkgc3tvidp.cloudfront.net/Review01.mp4" },
-  { id: 2, src: "https://drftkgc3tvidp.cloudfront.net/Review02.mp4" },
-  { id: 3, src: "https://drftkgc3tvidp.cloudfront.net/Review03.mp4" },
-  { id: 4, src: "https://drftkgc3tvidp.cloudfront.net/Review04.mp4" },
-  { id: 5, src: "https://drftkgc3tvidp.cloudfront.net/Review05.mp4" },
-  { id: 6, src: "https://drftkgc3tvidp.cloudfront.net/Review06.mp4" },
-];
+import {
+  LITTLE_VOICES_FALLBACK_VIDEOS,
+  normalizeLittleVoicesVideos,
+} from "../utils/littleVoicesVideos";
 
 export default function LittleVoicesSection() {
   const scrollRef = useRef(null);
   const [paused, setPaused] = useState(false);
-  const [videos, setVideos] = useState(defaultVideos);
+  const [videos, setVideos] = useState(LITTLE_VOICES_FALLBACK_VIDEOS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchVideos = async () => {
       try {
         const response = await api.get('/settings/little-voices-videos');
-        if (response.data && response.data.videos && response.data.videos.length > 0) {
-          setVideos(response.data.videos);
-        }
+        const list = response.data?.videos;
+        setVideos(normalizeLittleVoicesVideos(list));
       } catch (error) {
         console.error('Error fetching videos:', error);
-        // Keep default videos on error
+        setVideos(LITTLE_VOICES_FALLBACK_VIDEOS);
       } finally {
         setLoading(false);
       }
@@ -122,7 +116,15 @@ export default function LittleVoicesSection() {
               loop
               playsInline
               controls
-              preload="auto"
+              preload="metadata"
+              onError={(e) => {
+                const el = e.currentTarget
+                const fb = LITTLE_VOICES_FALLBACK_VIDEOS[i % LITTLE_VOICES_FALLBACK_VIDEOS.length].src
+                if (el.src && !el.src.includes('gtv-videos-bucket')) {
+                  el.src = fb
+                  el.load()
+                }
+              }}
             />
           </div>
         ))}
