@@ -30,12 +30,21 @@ function AdminSettings() {
   const [announcementMessage, setAnnouncementMessage] = useState('')
   const [videosMessage, setVideosMessage] = useState('')
   const [videos, setVideos] = useState([])
+  const [codEnabled, setCodEnabled] = useState(true)
+  const [codMessage, setCodMessage] = useState('')
+  const [savingCod, setSavingCod] = useState(false)
+  const [weightShippingEnabled, setWeightShippingEnabled] = useState(false)
+  const [weightPerKg, setWeightPerKg] = useState('0')
+  const [weightShipMessage, setWeightShipMessage] = useState('')
+  const [savingWeightShip, setSavingWeightShip] = useState(false)
 
   useEffect(() => {
     fetchButtonColor()
     fetchSectionNames()
     fetchAnnouncement()
     fetchVideos()
+    fetchCodEnabled()
+    fetchWeightShipping()
   }, [])
 
   const fetchButtonColor = async () => {
@@ -86,6 +95,66 @@ function AdminSettings() {
       }
     } catch (error) {
       console.error('Error fetching videos:', error)
+    }
+  }
+
+  const fetchCodEnabled = async () => {
+    try {
+      const response = await api.get('/admin/settings/cod-enabled')
+      if (typeof response.data?.codEnabled === 'boolean') {
+        setCodEnabled(response.data.codEnabled)
+      }
+    } catch (error) {
+      console.error('Error fetching COD setting:', error)
+    }
+  }
+
+  const handleSaveCod = async () => {
+    setSavingCod(true)
+    setCodMessage('')
+    try {
+      await api.put('/admin/settings/cod-enabled', { codEnabled })
+      setCodMessage(codEnabled ? 'Cash on Delivery is enabled for the store.' : 'Cash on Delivery is disabled for the store.')
+      setTimeout(() => setCodMessage(''), 5000)
+    } catch (error) {
+      setCodMessage('Error: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setSavingCod(false)
+    }
+  }
+
+  const fetchWeightShipping = async () => {
+    try {
+      const response = await api.get('/admin/settings/weight-shipping')
+      if (typeof response.data?.enabled === 'boolean') {
+        setWeightShippingEnabled(response.data.enabled)
+      }
+      const r = response.data?.perKgRate
+      setWeightPerKg(r != null && r !== '' ? String(r) : '0')
+    } catch (error) {
+      console.error('Error fetching weight shipping:', error)
+    }
+  }
+
+  const handleSaveWeightShipping = async () => {
+    setSavingWeightShip(true)
+    setWeightShipMessage('')
+    try {
+      const perKgRate = parseFloat(weightPerKg)
+      if (!Number.isFinite(perKgRate) || perKgRate < 0) {
+        setWeightShipMessage('Error: Enter a valid ₹ per kg (0 or more).')
+        return
+      }
+      await api.put('/admin/settings/weight-shipping', {
+        enabled: weightShippingEnabled,
+        perKgRate
+      })
+      setWeightShipMessage('Weight shipping settings saved.')
+      setTimeout(() => setWeightShipMessage(''), 5000)
+    } catch (error) {
+      setWeightShipMessage('Error: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setSavingWeightShip(false)
     }
   }
 
@@ -335,6 +404,101 @@ function AdminSettings() {
                 </ul>
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Cash on Delivery (store-wide) */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 mt-6">
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-2">Cash on Delivery</h1>
+            <p className="text-gray-600">
+              Turn COD on or off for the whole store. When on, customers still only see COD if every product in the cart has &quot;COD available&quot; enabled on that product.
+            </p>
+          </div>
+          {codMessage && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              codMessage.startsWith('Error')
+                ? 'bg-red-50 text-red-700 border border-red-200'
+                : 'bg-green-50 text-green-700 border border-green-200'
+            }`}>
+              {codMessage}
+            </div>
+          )}
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={codEnabled}
+              onChange={(e) => setCodEnabled(e.target.checked)}
+              className="w-5 h-5 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
+            />
+            <span className="text-sm font-semibold text-gray-900">Allow Cash on Delivery at checkout</span>
+          </label>
+          <p className="text-xs text-gray-500 mt-2 ml-8">
+            Uncheck to hide COD and block COD orders (online payment only). Per-product COD is managed in Products.
+          </p>
+          <div className="pt-6 border-t border-gray-200 mt-6">
+            <button
+              type="button"
+              onClick={handleSaveCod}
+              disabled={savingCod}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            >
+              {savingCod ? 'Saving...' : 'Save COD setting'}
+            </button>
+          </div>
+        </div>
+
+        {/* Weight-based shipping */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 mt-6">
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-2">Shipping by weight</h1>
+            <p className="text-gray-600">
+              Charge customers based on total billable weight (kg). Set <strong>Weight (kg)</strong> on each product in Products.
+              Lines with <strong>Free shipping</strong> do not add to billable weight. The amount is recomputed on the server at checkout.
+            </p>
+          </div>
+          {weightShipMessage && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              weightShipMessage.startsWith('Error')
+                ? 'bg-red-50 text-red-700 border border-red-200'
+                : 'bg-green-50 text-green-700 border border-green-200'
+            }`}>
+              {weightShipMessage}
+            </div>
+          )}
+          <label className="flex items-center gap-3 cursor-pointer mb-4">
+            <input
+              type="checkbox"
+              checked={weightShippingEnabled}
+              onChange={(e) => setWeightShippingEnabled(e.target.checked)}
+              className="w-5 h-5 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
+            />
+            <span className="text-sm font-semibold text-gray-900">Enable weight-based shipping</span>
+          </label>
+          <div className="max-w-xs">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Rate (₹ per kg)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={weightPerKg}
+              onChange={(e) => setWeightPerKg(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+              placeholder="e.g. 50"
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Example: 2 kg of billable items at ₹40/kg = ₹80 shipping (added after coupon discount).
+          </p>
+          <div className="pt-6 border-t border-gray-200 mt-6">
+            <button
+              type="button"
+              onClick={handleSaveWeightShipping}
+              disabled={savingWeightShip}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            >
+              {savingWeightShip ? 'Saving...' : 'Save shipping settings'}
+            </button>
           </div>
         </div>
 

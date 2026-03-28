@@ -6,6 +6,7 @@ import { createRazorpayOrder, verifyRazorpayPayment } from '../services/razorpay
 import { saveAddressService, getAddressService } from '../services/userService'
 import { useButtonColor } from '../hooks/useButtonColor'
 import api from '../services/api'
+import { computeWeightShippingRupees } from '../utils/shipping'
 import Skeleton from '../components/Skeleton'
 
 const INDIAN_STATES = [
@@ -45,6 +46,8 @@ function Checkout() {
   })
   const [couponInfo, setCouponInfo] = useState(null) // { code, discountAmount }
   const [couponError, setCouponError] = useState('')
+  const [codGloballyEnabled, setCodGloballyEnabled] = useState(true)
+  const [weightShipConfig, setWeightShipConfig] = useState({ enabled: false, perKgRate: 0 })
 
   // Format card number with spaces
   const formatCardNumber = (value) => {
@@ -104,6 +107,35 @@ function Checkout() {
       data?.zipCode?.trim()
     )
   }
+
+  useEffect(() => {
+    const loadCodSetting = async () => {
+      try {
+        const res = await api.get('/settings/cod-enabled')
+        if (typeof res.data?.codEnabled === 'boolean') {
+          setCodGloballyEnabled(res.data.codEnabled)
+        }
+      } catch {
+        setCodGloballyEnabled(true)
+      }
+    }
+    loadCodSetting()
+  }, [])
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await api.get('/settings/weight-shipping')
+        setWeightShipConfig({
+          enabled: Boolean(res.data?.enabled),
+          perKgRate: Math.max(0, Number(res.data?.perKgRate) || 0)
+        })
+      } catch {
+        setWeightShipConfig({ enabled: false, perKgRate: 0 })
+      }
+    }
+    load()
+  }, [])
 
   // Load saved address and logged-in user info on component mount
   useEffect(() => {
@@ -249,6 +281,15 @@ function Checkout() {
       cancelled = true
     }
   }, [cart])
+
+  useEffect(() => {
+    if (!cart?.items?.length) return
+    const cartAllowsCod = cart.items.every((item) => item?.product?.codAvailable === true)
+    const showCod = codGloballyEnabled && cartAllowsCod
+    if (!showCod && paymentMethod === 'cod') {
+      setPaymentMethod('razorpay')
+    }
+  }, [cart, codGloballyEnabled, paymentMethod])
 
   // Helper function to convert hex to RGB
   const hexToRgb = (hex) => {
@@ -483,6 +524,9 @@ function Checkout() {
     )
   }
 
+  const cartAllowsCod = cart.items.every((item) => item?.product?.codAvailable === true)
+  const showCodOption = codGloballyEnabled && cartAllowsCod
+
   const subtotal = cart.items.reduce((sum, item) => {
     if (!item || !item.product || !item.product.price) return sum
     return sum + (item.product.price * item.quantity)
@@ -498,7 +542,10 @@ function Checkout() {
   const couponDiscount = couponInfo?.discountAmount || 0
   // 18% tax included in prices
   const taxIncluded = subtotal * (0.18 / 1.18)
-  const total = Math.max(0, subtotal - couponDiscount)
+  const shippingCost = cart?.items?.length
+    ? computeWeightShippingRupees(cart.items, weightShipConfig.enabled, weightShipConfig.perKgRate)
+    : 0
+  const total = Math.max(0, subtotal - couponDiscount + shippingCost)
 
   const inputClass = "w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-yellow/30 focus:border-primary-yellow bg-white"
 
@@ -589,7 +636,14 @@ function Checkout() {
 
               <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
                 <h2 className="font-display font-semibold text-slate-900 text-lg mb-5">Payment</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {!showCodOption && (
+                  <p className="text-sm text-slate-600 mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    {!codGloballyEnabled
+                      ? 'Cash on Delivery is turned off for the store. Pay with Razorpay below.'
+                      : 'Cash on Delivery is not available because one or more items in your cart do not allow COD. Use Razorpay or remove those items.'}
+                  </p>
+                )}
+                <div className={`grid grid-cols-1 gap-4 ${showCodOption ? 'sm:grid-cols-2' : ''}`}>
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('razorpay')}
@@ -606,6 +660,7 @@ function Checkout() {
                     <p className="font-medium text-slate-900 text-sm">Razorpay</p>
                     <p className="text-xs text-slate-500 mt-0.5">Card, UPI, netbanking</p>
                   </button>
+                  {showCodOption && (
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('cod')}
@@ -622,6 +677,7 @@ function Checkout() {
                     <p className="font-medium text-slate-900 text-sm">Cash on delivery</p>
                     <p className="text-xs text-slate-500 mt-0.5">Pay when you receive</p>
                   </button>
+                  )}
                 </div>
 
                 {paymentMethod === 'razorpay' && (
@@ -686,6 +742,15 @@ function Checkout() {
                   <div className="flex justify-between text-green-700 text-sm">
                     <span className="font-medium">Coupon discount</span>
                     <span className="font-semibold">₹{couponDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                {weightShipConfig.enabled && weightShipConfig.perKgRate > 0 && (
+                  <div className="flex justify-between text-slate-600 text-sm gap-3">
+                    <span>
+                      <span className="block font-medium">Shipping (by weight)</span>
+                      <span className="block text-[11px] font-normal text-slate-400 mt-0.5">Free-shipping items excluded</span>
+                    </span>
+                    <span className="font-semibold tabular-nums flex-shrink-0">₹{shippingCost.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-600 text-sm gap-3">

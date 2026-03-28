@@ -4,6 +4,7 @@ import { getCart, updateCartItem, removeFromCart } from '../services/cartService
 import { useButtonColor } from '../hooks/useButtonColor'
 import Skeleton from '../components/Skeleton'
 import api from '../services/api'
+import { computeWeightShippingRupees } from '../utils/shipping'
 
 // Row with local quantity so +/- feel instant
 function CartItemRow({ item, index, updatingId, onQuantityChange, onRemove }) {
@@ -109,6 +110,7 @@ function Cart() {
   const [updatingId, setUpdatingId] = useState(null)
    const [couponInfo, setCouponInfo] = useState(null) // { code, discountAmount }
    const [couponError, setCouponError] = useState('')
+  const [weightShipConfig, setWeightShipConfig] = useState({ enabled: false, perKgRate: 0 })
   const navigate = useNavigate()
   const { buttonColor } = useButtonColor()
 
@@ -124,6 +126,21 @@ function Cart() {
 
   useEffect(() => {
     fetchCart()
+  }, [])
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await api.get('/settings/weight-shipping')
+        setWeightShipConfig({
+          enabled: Boolean(res.data?.enabled),
+          perKgRate: Math.max(0, Number(res.data?.perKgRate) || 0)
+        })
+      } catch {
+        setWeightShipConfig({ enabled: false, perKgRate: 0 })
+      }
+    }
+    load()
   }, [])
 
   // Re-validate any coupon applied on the product page using current cart subtotal
@@ -322,7 +339,12 @@ function Cart() {
   const couponDiscount = couponInfo?.discountAmount || 0
   // 18% tax is included in prices (tax-inclusive)
   const taxIncluded = subtotal * (0.18 / 1.18)
-  const total = Math.max(0, subtotal - couponDiscount)
+  const shippingCost = computeWeightShippingRupees(
+    cart.items,
+    weightShipConfig.enabled,
+    weightShipConfig.perKgRate
+  )
+  const total = Math.max(0, subtotal - couponDiscount + shippingCost)
 
   return (
     <div className="bg-white min-h-screen py-8">
@@ -376,6 +398,15 @@ function Cart() {
                       Coupon discount{couponInfo?.code ? ` (${couponInfo.code})` : ''}
                     </span>
                     <span className="font-bold">₹{couponDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                {weightShipConfig.enabled && weightShipConfig.perKgRate > 0 && (
+                  <div className="flex justify-between text-gray-800">
+                    <span>
+                      <span className="block font-medium">Shipping (by weight)</span>
+                      <span className="block text-[11px] font-normal text-slate-500 mt-0.5">Free-shipping items excluded</span>
+                    </span>
+                    <span className="font-bold tabular-nums">₹{shippingCost.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="border-t-2 border-black pt-4 flex justify-between">
