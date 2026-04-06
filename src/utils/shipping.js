@@ -1,4 +1,4 @@
-/** Mirror backend shippingCalc for cart/checkout display (server recomputes on pay). */
+/** Mirror backend shippingCalc for cart/checkout (server recomputes on pay). */
 
 export function computeBillableKg(cartItems) {
   let kg = 0;
@@ -14,6 +14,17 @@ export function computeBillableKg(cartItems) {
   return kg;
 }
 
+export function isKeralaState(state) {
+  if (state == null || typeof state !== 'string') return false;
+  return state.trim().toLowerCase() === 'kerala';
+}
+
+export function perKgRateForState(rates, state) {
+  const k = Math.max(0, Number(rates.keralaPerKg) || 0);
+  const r = Math.max(0, Number(rates.restOfIndiaPerKg) || 0);
+  return isKeralaState(state) ? k : r;
+}
+
 export function computeWeightShippingFromKg(kg, enabled, perKgRate) {
   const rate = Math.max(0, Number(perKgRate) || 0);
   if (!enabled || rate <= 0) return 0;
@@ -21,6 +32,25 @@ export function computeWeightShippingFromKg(kg, enabled, perKgRate) {
   return Math.round(k * rate * 100) / 100;
 }
 
+export function computeWeightShippingForZone(billableKg, enabled, rates, state) {
+  if (!enabled) return 0;
+  const rate = perKgRateForState(rates, state);
+  return computeWeightShippingFromKg(billableKg, true, rate);
+}
+
+/** @deprecated use zone helpers; kept for older call sites */
 export function computeWeightShippingRupees(cartItems, enabled, perKgRate) {
   return computeWeightShippingFromKg(computeBillableKg(cartItems), enabled, perKgRate);
+}
+
+export function computeWeightShippingRupeesForZone(cartItems, enabled, rates, state) {
+  const kg = computeBillableKg(cartItems);
+  return computeWeightShippingForZone(kg, enabled, rates, state);
+}
+
+export function shippingZoneLabel(state) {
+  if (state != null && String(state).trim() !== '') {
+    return isKeralaState(state) ? 'Kerala' : 'outside Kerala';
+  }
+  return 'outside Kerala (default)';
 }

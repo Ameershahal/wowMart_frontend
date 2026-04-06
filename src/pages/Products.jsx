@@ -225,7 +225,7 @@ function Products() {
           </div>
         </div>
 
-        {loading ? (
+        {loading && products.length === 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
             {[...Array(8)].map((_, i) => (
               <ProductCardSkeleton key={i} />
@@ -236,7 +236,12 @@ function Products() {
             <p className="text-slate-600">No products match your filters. Try adjusting them.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+          <div
+            className={`grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6 transition-opacity duration-200 ${
+              loading ? 'opacity-55 pointer-events-none' : 'opacity-100'
+            }`}
+            aria-busy={loading}
+          >
             {products.map((product, index) => (
               <div
                 key={product._id}

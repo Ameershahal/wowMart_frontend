@@ -11,26 +11,81 @@ import bannerImage2 from '../images/banner 2.jpeg'
 import LittleVoicesSection from '../components/LittleVoicesSection'
 import TestimonialsSection from '../components/TestimonialsSection'
 
+const HOME_CACHE_KEY = 'wowmart_home_v1'
+const HOME_CACHE_MAX_AGE_MS = 12 * 60 * 1000
+
+const DEFAULT_SECTION_NAMES = {
+  shopByCategory: 'Shop by Category',
+  trendingCollections: 'Trending Collections',
+  trendingToys: 'Trending Toys',
+  trendingGadgets: 'Trending Gadgets',
+  trendingBuildingSets: 'Trending Building Sets',
+  featuredProducts: 'Featured Products',
+  customerReviews: 'What Our Customers Say',
+}
+
+function readHomeCache() {
+  try {
+    const raw = sessionStorage.getItem(HOME_CACHE_KEY)
+    if (!raw) return null
+    const o = JSON.parse(raw)
+    if (!o._ts || Date.now() - o._ts > HOME_CACHE_MAX_AGE_MS) return null
+    return o
+  } catch {
+    return null
+  }
+}
+
+function mergeHomeCache(patch) {
+  try {
+    let prev = {}
+    try {
+      const raw = sessionStorage.getItem(HOME_CACHE_KEY)
+      if (raw) prev = JSON.parse(raw)
+    } catch {
+      prev = {}
+    }
+    const { _ts: _drop, ...rest } = prev
+    sessionStorage.setItem(
+      HOME_CACHE_KEY,
+      JSON.stringify({ ...rest, ...patch, _ts: Date.now() })
+    )
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+const defaultFallbackBanners = (img1, img2) => [
+  { src: img1, alt: 'Banner 1', linkUrl: '/products', buttonText: 'Shop Now' },
+  { src: img2, alt: 'Banner 2', linkUrl: '/products', buttonText: 'Shop Now' },
+]
+
 function Home() {
-  const [featuredProducts, setFeaturedProducts] = useState([])
+  const cached = readHomeCache()
+  const [featuredProducts, setFeaturedProducts] = useState(() => cached?.featuredProducts ?? [])
   const [trendingCollections, setTrendingCollections] = useState({})
-  const [categories, setCategories] = useState([])
-  const [banners, setBanners] = useState([])
-  const [reviews, setReviews] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState(() => cached?.categories ?? [])
+  const [categoriesLoaded, setCategoriesLoaded] = useState(
+    () => Boolean(cached?.categories?.length)
+  )
+  const [banners, setBanners] = useState(() =>
+    cached?.banners?.length
+      ? cached.banners
+      : defaultFallbackBanners(bannerImage, bannerImage2)
+  )
+  const [reviews, setReviews] = useState(() => cached?.reviews ?? [])
+  const [featuredLoading, setFeaturedLoading] = useState(
+    () =>
+      !Array.isArray(cached?.featuredProducts) || cached.featuredProducts.length === 0
+  )
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd, setTouchEnd] = useState(null)
   const [touchStartY, setTouchStartY] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [sectionNames, setSectionNames] = useState({
-    shopByCategory: 'Shop by Category',
-    trendingCollections: 'Trending Collections',
-    trendingToys: 'Trending Toys',
-    trendingGadgets: 'Trending Gadgets',
-    trendingBuildingSets: 'Trending Building Sets',
-    featuredProducts: 'Featured Products',
-    customerReviews: 'What Our Customers Say'
+    ...DEFAULT_SECTION_NAMES,
+    ...(cached?.sectionNames && typeof cached.sectionNames === 'object' ? cached.sectionNames : {}),
   })
 
   // Helper function to get full image URL (handles Cloudinary and local paths)
@@ -48,80 +103,110 @@ function Home() {
   }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const featuredPromise = api
-          .get('/products/featured/list?section=Featured Products')
-          .then((res) => res.data)
-          .catch(() => getFeaturedProducts())
+    let cancelled = false
 
-        const [
-          sectionsResult,
-          categoriesResult,
-          bannersResult,
-          featuredResult,
-          reviewsResult
-        ] = await Promise.allSettled([
-          api.get('/settings/homepage-sections'),
-          api.get('/categories?homepage=true'),
-          api.get('/banners'),
-          featuredPromise,
-          api.get('/reviews/featured')
-        ])
+    const excludedCategorySlugs = ['toys', 'gadgets', 'building-sets', 'electronics', 'games']
+    const filterCategories = (categoriesData) =>
+      categoriesData.filter((category) => {
+        const slug = category.categorySlug?.toLowerCase() || ''
+        const name = category.name?.toLowerCase() || ''
+        return !excludedCategorySlugs.some(
+          (excluded) => slug.includes(excluded) || name.includes(excluded)
+        )
+      })
 
-        if (sectionsResult.status === 'fulfilled' && sectionsResult.value?.data?.sections) {
-          setSectionNames(sectionsResult.value.data.sections)
-        }
+    const fallbackBanners = defaultFallbackBanners(bannerImage, bannerImage2)
 
-        // Filter out specific categories: toys, gadgets, building-sets, electronics, games
-        const excludedCategorySlugs = ['toys', 'gadgets', 'building-sets', 'electronics', 'games']
-        const categoriesData = categoriesResult.status === 'fulfilled' ? (categoriesResult.value?.data || []) : []
-        const filteredCategories = categoriesData.filter(category => {
-          const slug = category.categorySlug?.toLowerCase() || ''
-          const name = category.name?.toLowerCase() || ''
-          return !excludedCategorySlugs.some(excluded => 
-            slug.includes(excluded) || name.includes(excluded)
-          )
-        })
-        setCategories(filteredCategories)
-        
-        const bannersData = bannersResult.status === 'fulfilled' ? (bannersResult.value?.data || []) : []
+    const featuredPromise = api
+      .get('/products/featured/list?section=Featured Products')
+      .then((res) => res.data)
+      .catch(() => getFeaturedProducts())
+
+    api
+      .get('/settings/homepage-sections')
+      .then((res) => {
+        if (cancelled || !res?.data?.sections) return
+        setSectionNames((prev) => ({ ...prev, ...res.data.sections }))
+        mergeHomeCache({ sectionNames: res.data.sections })
+      })
+      .catch(() => {})
+
+    api
+      .get('/categories?homepage=true')
+      .then((res) => {
+        if (cancelled) return
+        const categoriesData = res?.data || []
+        const filtered = filterCategories(categoriesData)
+        setCategories(filtered)
+        setCategoriesLoaded(true)
+        mergeHomeCache({ categories: filtered })
+      })
+      .catch(() => {
+        if (!cancelled) setCategoriesLoaded(true)
+      })
+
+    api
+      .get('/banners')
+      .then((res) => {
+        if (cancelled) return
+        const bannersData = res?.data || []
         if (bannersData.length > 0) {
-          const formattedBanners = bannersData.map(banner => ({
+          const formattedBanners = bannersData.map((banner) => ({
             desktopImageUrl: banner.desktopImageUrl || banner.imageUrl,
             mobileImageUrl: banner.mobileImageUrl || banner.imageUrl,
-            src: banner.imageUrl, // Fallback
+            src: banner.imageUrl,
             alt: `Banner ${banner.order + 1}`,
             linkUrl: banner.linkUrl || '/products',
             buttonText: banner.buttonText || 'Shop Now',
-            buttonColor: banner.buttonColor || undefined
+            buttonColor: banner.buttonColor || undefined,
           }))
           setBanners(formattedBanners)
+          mergeHomeCache({ banners: formattedBanners })
         } else {
-          setBanners([
-            { src: bannerImage, alt: 'Banner 1', linkUrl: '/products', buttonText: 'Shop Now' },
-            { src: bannerImage2, alt: 'Banner 2', linkUrl: '/products', buttonText: 'Shop Now' }
-          ])
+          setBanners(fallbackBanners)
+          mergeHomeCache({ banners: fallbackBanners })
         }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBanners(fallbackBanners)
+          mergeHomeCache({ banners: fallbackBanners })
+        }
+      })
 
-        if (featuredResult.status === 'fulfilled') {
-          setFeaturedProducts(Array.isArray(featuredResult.value) ? featuredResult.value : [])
-        } else {
+    featuredPromise
+      .then((data) => {
+        if (cancelled) return
+        const list = Array.isArray(data) ? data : []
+        setFeaturedProducts(list)
+        mergeHomeCache({ featuredProducts: list })
+      })
+      .catch(() => {
+        if (!cancelled) {
           setFeaturedProducts([])
+          mergeHomeCache({ featuredProducts: [] })
         }
-        setTrendingCollections({})
+      })
+      .finally(() => {
+        if (!cancelled) setFeaturedLoading(false)
+      })
 
-        if (reviewsResult.status === 'fulfilled') {
-          setReviews(reviewsResult.value?.data || [])
-          setCurrentReviewIndex(0)
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
-      }
+    api
+      .get('/reviews/featured')
+      .then((res) => {
+        if (cancelled) return
+        const rev = res?.data || []
+        setReviews(rev)
+        setCurrentReviewIndex(0)
+        mergeHomeCache({ reviews: rev })
+      })
+      .catch(() => {})
+
+    setTrendingCollections({})
+
+    return () => {
+      cancelled = true
     }
-    fetchData()
   }, [])
 
   // Auto-slide reviews carousel
@@ -223,7 +308,18 @@ function Home() {
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-              {categories.length === 0 ? (
+              {!categoriesLoaded && categories.length === 0 ? (
+                [...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col items-center"
+                    aria-hidden
+                  >
+                    <div className="w-full aspect-square rounded-xl bg-slate-100 border border-slate-100" />
+                    <div className="mt-3 h-4 w-24 rounded bg-slate-100" />
+                  </div>
+                ))
+              ) : categories.length === 0 ? (
                 <div className="col-span-full text-center py-12 text-slate-500 text-sm">
                   No categories available.
                 </div>
@@ -280,7 +376,7 @@ function Home() {
             </p>
           </div>
 
-          {loading ? (
+          {featuredLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
               {[...Array(8)].map((_, i) => (
                 <ProductCardSkeleton key={i} />

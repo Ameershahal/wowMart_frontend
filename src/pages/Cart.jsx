@@ -4,7 +4,7 @@ import { getCart, updateCartItem, removeFromCart } from '../services/cartService
 import { useButtonColor } from '../hooks/useButtonColor'
 import Skeleton from '../components/Skeleton'
 import api from '../services/api'
-import { computeWeightShippingRupees } from '../utils/shipping'
+import { computeWeightShippingRupeesForZone, shippingZoneLabel } from '../utils/shipping'
 
 // Row with local quantity so +/- feel instant
 function CartItemRow({ item, index, updatingId, onQuantityChange, onRemove }) {
@@ -110,7 +110,11 @@ function Cart() {
   const [updatingId, setUpdatingId] = useState(null)
    const [couponInfo, setCouponInfo] = useState(null) // { code, discountAmount }
    const [couponError, setCouponError] = useState('')
-  const [weightShipConfig, setWeightShipConfig] = useState({ enabled: false, perKgRate: 0 })
+  const [weightShipConfig, setWeightShipConfig] = useState({
+    enabled: false,
+    keralaPerKg: 0,
+    restOfIndiaPerKg: 0,
+  })
   const navigate = useNavigate()
   const { buttonColor } = useButtonColor()
 
@@ -132,12 +136,19 @@ function Cart() {
     const load = async () => {
       try {
         const res = await api.get('/settings/weight-shipping')
+        const rest = Math.max(0, Number(res.data?.restOfIndiaPerKg ?? res.data?.perKgRate) || 0)
+        const kerRaw = res.data?.keralaPerKg
+        const ker =
+          kerRaw !== undefined && kerRaw !== null && kerRaw !== ''
+            ? Math.max(0, Number(kerRaw) || 0)
+            : rest
         setWeightShipConfig({
           enabled: Boolean(res.data?.enabled),
-          perKgRate: Math.max(0, Number(res.data?.perKgRate) || 0)
+          keralaPerKg: ker,
+          restOfIndiaPerKg: rest,
         })
       } catch {
-        setWeightShipConfig({ enabled: false, perKgRate: 0 })
+        setWeightShipConfig({ enabled: false, keralaPerKg: 0, restOfIndiaPerKg: 0 })
       }
     }
     load()
@@ -339,10 +350,25 @@ function Cart() {
   const couponDiscount = couponInfo?.discountAmount || 0
   // 18% tax is included in prices (tax-inclusive)
   const taxIncluded = subtotal * (0.18 / 1.18)
-  const shippingCost = computeWeightShippingRupees(
+  let cartShipState = ''
+  try {
+    const raw = localStorage.getItem('savedShippingAddress')
+    if (raw) {
+      const j = JSON.parse(raw)
+      if (typeof j?.state === 'string') cartShipState = j.state.trim()
+    }
+  } catch {
+    cartShipState = ''
+  }
+  const zoneRates = {
+    keralaPerKg: weightShipConfig.keralaPerKg,
+    restOfIndiaPerKg: weightShipConfig.restOfIndiaPerKg,
+  }
+  const shippingCost = computeWeightShippingRupeesForZone(
     cart.items,
     weightShipConfig.enabled,
-    weightShipConfig.perKgRate
+    zoneRates,
+    cartShipState
   )
   const total = Math.max(0, subtotal - couponDiscount + shippingCost)
 
@@ -400,11 +426,17 @@ function Cart() {
                     <span className="font-bold">₹{couponDiscount.toFixed(2)}</span>
                   </div>
                 )}
-                {weightShipConfig.enabled && weightShipConfig.perKgRate > 0 && (
+                {weightShipConfig.enabled &&
+                  (weightShipConfig.keralaPerKg > 0 || weightShipConfig.restOfIndiaPerKg > 0) && (
                   <div className="flex justify-between text-gray-800">
                     <span>
-                      <span className="block font-medium">Shipping (by weight)</span>
-                      <span className="block text-[11px] font-normal text-slate-500 mt-0.5">Free-shipping items excluded</span>
+                      <span className="block font-medium">
+                        Shipping ({shippingZoneLabel(cartShipState)})
+                      </span>
+                      <span className="block text-[11px] font-normal text-slate-500 mt-0.5">
+                        By weight · free-shipping items excluded
+                        {!cartShipState && ' · final rate at checkout by state'}
+                      </span>
                     </span>
                     <span className="font-bold tabular-nums">₹{shippingCost.toFixed(2)}</span>
                   </div>

@@ -46,7 +46,14 @@ function Categories() {
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-6">
               {[...Array(10)].map((_, i) => (
-                <div key={i} className="aspect-square rounded-xl bg-slate-200 animate-pulse" />
+                <div
+                  key={i}
+                  className="flex flex-col items-center"
+                  aria-hidden
+                >
+                  <div className="w-full aspect-square rounded-xl bg-slate-100 border border-slate-100" />
+                  <div className="mt-3 h-4 w-20 rounded bg-slate-100" />
+                </div>
               ))}
             </div>
           ) : categories.length === 0 ? (

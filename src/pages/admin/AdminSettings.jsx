@@ -34,9 +34,15 @@ function AdminSettings() {
   const [codMessage, setCodMessage] = useState('')
   const [savingCod, setSavingCod] = useState(false)
   const [weightShippingEnabled, setWeightShippingEnabled] = useState(false)
-  const [weightPerKg, setWeightPerKg] = useState('0')
+  const [weightKeralaPerKg, setWeightKeralaPerKg] = useState('0')
+  const [weightRestPerKg, setWeightRestPerKg] = useState('0')
   const [weightShipMessage, setWeightShipMessage] = useState('')
   const [savingWeightShip, setSavingWeightShip] = useState(false)
+  const [pwdCurrent, setPwdCurrent] = useState('')
+  const [pwdNew, setPwdNew] = useState('')
+  const [pwdConfirm, setPwdConfirm] = useState('')
+  const [pwdMessage, setPwdMessage] = useState('')
+  const [savingPwd, setSavingPwd] = useState(false)
 
   useEffect(() => {
     fetchButtonColor()
@@ -129,8 +135,10 @@ function AdminSettings() {
       if (typeof response.data?.enabled === 'boolean') {
         setWeightShippingEnabled(response.data.enabled)
       }
-      const r = response.data?.perKgRate
-      setWeightPerKg(r != null && r !== '' ? String(r) : '0')
+      const k = response.data?.keralaPerKg
+      const r = response.data?.restOfIndiaPerKg ?? response.data?.perKgRate
+      setWeightKeralaPerKg(k != null && k !== '' ? String(k) : '0')
+      setWeightRestPerKg(r != null && r !== '' ? String(r) : '0')
     } catch (error) {
       console.error('Error fetching weight shipping:', error)
     }
@@ -140,14 +148,16 @@ function AdminSettings() {
     setSavingWeightShip(true)
     setWeightShipMessage('')
     try {
-      const perKgRate = parseFloat(weightPerKg)
-      if (!Number.isFinite(perKgRate) || perKgRate < 0) {
-        setWeightShipMessage('Error: Enter a valid ₹ per kg (0 or more).')
+      const kerala = parseFloat(weightKeralaPerKg)
+      const rest = parseFloat(weightRestPerKg)
+      if (!Number.isFinite(kerala) || kerala < 0 || !Number.isFinite(rest) || rest < 0) {
+        setWeightShipMessage('Error: Enter valid ₹ per kg for both zones (0 or more).')
         return
       }
       await api.put('/admin/settings/weight-shipping', {
         enabled: weightShippingEnabled,
-        perKgRate
+        keralaPerKg: kerala,
+        restOfIndiaPerKg: rest,
       })
       setWeightShipMessage('Weight shipping settings saved.')
       setTimeout(() => setWeightShipMessage(''), 5000)
@@ -155,6 +165,38 @@ function AdminSettings() {
       setWeightShipMessage('Error: ' + (error.response?.data?.message || error.message))
     } finally {
       setSavingWeightShip(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    setSavingPwd(true)
+    setPwdMessage('')
+    try {
+      if (!pwdCurrent || !pwdNew) {
+        setPwdMessage('Error: Fill in current and new password.')
+        return
+      }
+      if (pwdNew.length < 6) {
+        setPwdMessage('Error: New password must be at least 6 characters.')
+        return
+      }
+      if (pwdNew !== pwdConfirm) {
+        setPwdMessage('Error: New password and confirmation do not match.')
+        return
+      }
+      await api.put('/admin/change-password', {
+        currentPassword: pwdCurrent,
+        newPassword: pwdNew,
+      })
+      setPwdMessage('Password updated successfully. Use your new password next time you log in.')
+      setPwdCurrent('')
+      setPwdNew('')
+      setPwdConfirm('')
+      setTimeout(() => setPwdMessage(''), 6000)
+    } catch (error) {
+      setPwdMessage('Error: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setSavingPwd(false)
     }
   }
 
@@ -299,7 +341,68 @@ function AdminSettings() {
 
   return (
     <div className="p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Admin password */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-2">Change admin password</h1>
+            <p className="text-gray-600">
+              Update the password for your admin login. This does not affect customer accounts.
+            </p>
+          </div>
+          {pwdMessage && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              pwdMessage.startsWith('Error')
+                ? 'bg-red-50 text-red-700 border border-red-200'
+                : 'bg-green-50 text-green-700 border border-green-200'
+            }`}>
+              {pwdMessage}
+            </div>
+          )}
+          <div className="space-y-4 max-w-md">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Current password</label>
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={pwdCurrent}
+                onChange={(e) => setPwdCurrent(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">New password</label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={pwdNew}
+                onChange={(e) => setPwdNew(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                minLength={6}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm new password</label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={pwdConfirm}
+                onChange={(e) => setPwdConfirm(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                minLength={6}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleChangePassword}
+              disabled={savingPwd}
+              className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {savingPwd ? 'Saving…' : 'Update password'}
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-black mb-2">Button Settings</h1>
@@ -451,10 +554,11 @@ function AdminSettings() {
         {/* Weight-based shipping */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 mt-6">
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-black mb-2">Shipping by weight</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-2">Shipping by weight (zones)</h1>
             <p className="text-gray-600">
-              Charge customers based on total billable weight (kg). Set <strong>Weight (kg)</strong> on each product in Products.
-              Lines with <strong>Free shipping</strong> do not add to billable weight. The amount is recomputed on the server at checkout.
+              Set <strong>₹ per kg</strong> for deliveries inside <strong>Kerala</strong> vs <strong>rest of India</strong> (matches the state the customer selects at checkout).
+              Set <strong>Weight (kg)</strong> on each product in Products. <strong>Free shipping</strong> lines are excluded from billable weight.
+              Totals are recomputed on the server when the order is placed.
             </p>
           </div>
           {weightShipMessage && (
@@ -475,20 +579,34 @@ function AdminSettings() {
             />
             <span className="text-sm font-semibold text-gray-900">Enable weight-based shipping</span>
           </label>
-          <div className="max-w-xs">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Rate (₹ per kg)</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={weightPerKg}
-              onChange={(e) => setWeightPerKg(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-              placeholder="e.g. 50"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Kerala — ₹ per kg</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={weightKeralaPerKg}
+                onChange={(e) => setWeightKeralaPerKg(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                placeholder="e.g. 40"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Rest of India — ₹ per kg</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={weightRestPerKg}
+                onChange={(e) => setWeightRestPerKg(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                placeholder="e.g. 80"
+              />
+            </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Example: 2 kg of billable items at ₹40/kg = ₹80 shipping (added after coupon discount).
+            If no state is sent, the <strong>rest of India</strong> rate applies. Example: 2 kg × ₹40 (Kerala) = ₹80 shipping (after coupon discount).
           </p>
           <div className="pt-6 border-t border-gray-200 mt-6">
             <button

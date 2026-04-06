@@ -6,7 +6,7 @@ import { createRazorpayOrder, verifyRazorpayPayment } from '../services/razorpay
 import { saveAddressService, getAddressService } from '../services/userService'
 import { useButtonColor } from '../hooks/useButtonColor'
 import api from '../services/api'
-import { computeWeightShippingRupees } from '../utils/shipping'
+import { computeWeightShippingRupeesForZone, shippingZoneLabel } from '../utils/shipping'
 import Skeleton from '../components/Skeleton'
 
 const INDIAN_STATES = [
@@ -47,7 +47,11 @@ function Checkout() {
   const [couponInfo, setCouponInfo] = useState(null) // { code, discountAmount }
   const [couponError, setCouponError] = useState('')
   const [codGloballyEnabled, setCodGloballyEnabled] = useState(true)
-  const [weightShipConfig, setWeightShipConfig] = useState({ enabled: false, perKgRate: 0 })
+  const [weightShipConfig, setWeightShipConfig] = useState({
+    enabled: false,
+    keralaPerKg: 0,
+    restOfIndiaPerKg: 0,
+  })
 
   // Format card number with spaces
   const formatCardNumber = (value) => {
@@ -126,12 +130,19 @@ function Checkout() {
     const load = async () => {
       try {
         const res = await api.get('/settings/weight-shipping')
+        const rest = Math.max(0, Number(res.data?.restOfIndiaPerKg ?? res.data?.perKgRate) || 0)
+        const kerRaw = res.data?.keralaPerKg
+        const ker =
+          kerRaw !== undefined && kerRaw !== null && kerRaw !== ''
+            ? Math.max(0, Number(kerRaw) || 0)
+            : rest
         setWeightShipConfig({
           enabled: Boolean(res.data?.enabled),
-          perKgRate: Math.max(0, Number(res.data?.perKgRate) || 0)
+          keralaPerKg: ker,
+          restOfIndiaPerKg: rest,
         })
       } catch {
-        setWeightShipConfig({ enabled: false, perKgRate: 0 })
+        setWeightShipConfig({ enabled: false, keralaPerKg: 0, restOfIndiaPerKg: 0 })
       }
     }
     load()
@@ -542,8 +553,17 @@ function Checkout() {
   const couponDiscount = couponInfo?.discountAmount || 0
   // 18% tax included in prices
   const taxIncluded = subtotal * (0.18 / 1.18)
+  const zoneRates = {
+    keralaPerKg: weightShipConfig.keralaPerKg,
+    restOfIndiaPerKg: weightShipConfig.restOfIndiaPerKg,
+  }
   const shippingCost = cart?.items?.length
-    ? computeWeightShippingRupees(cart.items, weightShipConfig.enabled, weightShipConfig.perKgRate)
+    ? computeWeightShippingRupeesForZone(
+        cart.items,
+        weightShipConfig.enabled,
+        zoneRates,
+        formData.state
+      )
     : 0
   const total = Math.max(0, subtotal - couponDiscount + shippingCost)
 
@@ -744,11 +764,16 @@ function Checkout() {
                     <span className="font-semibold">₹{couponDiscount.toFixed(2)}</span>
                   </div>
                 )}
-                {weightShipConfig.enabled && weightShipConfig.perKgRate > 0 && (
+                {weightShipConfig.enabled &&
+                  (weightShipConfig.keralaPerKg > 0 || weightShipConfig.restOfIndiaPerKg > 0) && (
                   <div className="flex justify-between text-slate-600 text-sm gap-3">
                     <span>
-                      <span className="block font-medium">Shipping (by weight)</span>
-                      <span className="block text-[11px] font-normal text-slate-400 mt-0.5">Free-shipping items excluded</span>
+                      <span className="block font-medium">
+                        Shipping ({shippingZoneLabel(formData.state)})
+                      </span>
+                      <span className="block text-[11px] font-normal text-slate-400 mt-0.5">
+                        By weight · free-shipping items excluded
+                      </span>
                     </span>
                     <span className="font-semibold tabular-nums flex-shrink-0">₹{shippingCost.toFixed(2)}</span>
                   </div>

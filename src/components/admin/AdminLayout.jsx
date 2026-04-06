@@ -8,6 +8,8 @@ function AdminLayout({ children }) {
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth')
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('admin')
     navigate('/admin/login')
   }
 
@@ -201,11 +203,6 @@ function AdminLayout({ children }) {
                   {location.pathname === '/admin/coupons' && 'Coupons'}
                   {location.pathname === '/admin/settings' && 'Settings'}
                 </h2>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center shadow-sm">
-                <span className="text-yellow-600 font-semibold text-xs">A</span>
               </div>
             </div>
           </div>
