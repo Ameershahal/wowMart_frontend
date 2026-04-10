@@ -13,6 +13,19 @@ export const LITTLE_VOICES_FALLBACK_VIDEOS = [
 
 /** Host that used to serve Review01–06.mp4; CDN now errors — treat as broken. */
 const LEGACY_BROKEN_HOST = 'drftkgc3tvidp.cloudfront.net'
+const DIRECT_VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|m4v|mov)(\?.*)?$/i
+
+function isDirectVideoUrl(u) {
+  if (!u) return false
+  const s = String(u).trim()
+  // local uploads from backend
+  if (s.startsWith('/uploads/')) return true
+  // public direct files
+  if (/^https?:\/\//i.test(s) && DIRECT_VIDEO_EXT_RE.test(s)) return true
+  // common non-direct platforms that cannot be used in <video src="...">
+  if (/instagram\.com|youtube\.com|youtu\.be|facebook\.com|fb\.watch|tiktok\.com/i.test(s)) return false
+  return false
+}
 
 /**
  * Ensure each slot has a direct .mp4 (or similar) URL; remap known-dead defaults.
@@ -27,7 +40,7 @@ export function normalizeLittleVoicesVideos(videos) {
     const useFallback =
       !raw ||
       raw.includes(LEGACY_BROKEN_HOST) ||
-      (!/^https?:\/\//i.test(raw) && !raw.startsWith('/'))
+      !isDirectVideoUrl(raw)
     const src = useFallback ? fallbacks[i % fallbacks.length].src : raw
     return { id: v.id ?? i + 1, src }
   })

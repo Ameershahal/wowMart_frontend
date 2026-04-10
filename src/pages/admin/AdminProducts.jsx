@@ -98,9 +98,26 @@ function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get('/admin/products')
-      console.log(response.data[0]);
-      setProducts(response.data)
+      const pageSize = 100
+      let page = 1
+      let all = []
+      let totalPages = 1
+
+      do {
+        const response = await api.get(`/admin/products?page=${page}&limit=${pageSize}`)
+        const payload = response.data
+        if (Array.isArray(payload)) {
+          // Backward compatibility if API returns plain array
+          all = payload
+          break
+        }
+        const items = Array.isArray(payload?.items) ? payload.items : []
+        all = all.concat(items)
+        totalPages = Number(payload?.totalPages) || 1
+        page += 1
+      } while (page <= totalPages)
+
+      setProducts(all)
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
