@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { resolveMediaUrl } from '../../utils/apiOrigin.js'
 
 function AdminOrderDetail() {
   const { id } = useParams()
@@ -271,7 +272,7 @@ function AdminOrderDetail() {
                 <div key={index} className="flex items-center space-x-4 pb-4 border-b border-gray-100 last:border-0">
                   {item.product?.images && item.product.images[0] && (
                     <img
-                      src={item.product.images[0]}
+                      src={resolveMediaUrl(item.product.images[0])}
                       alt={item.product.name}
                       className="w-16 h-16 object-cover rounded border border-gray-200"
                     />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
+import { getPublicApiOrigin } from '../../utils/apiOrigin'
 
 function AdminBanners() {
   const [banners, setBanners] = useState([])
@@ -216,7 +217,11 @@ function AdminBanners() {
             <div key={banner._id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="aspect-video bg-gray-100 relative">
                 <img
-                  src={`https://wow-aovo.onrender.com${banner.imageUrl}`}
+                  src={
+                    banner.imageUrl?.startsWith('http://') || banner.imageUrl?.startsWith('https://')
+                      ? banner.imageUrl
+                      : `${getPublicApiOrigin()}${banner.imageUrl || ''}`
+                  }
                   alt="Banner"
                   className="w-full h-full object-cover"
                   onError={(e) => {

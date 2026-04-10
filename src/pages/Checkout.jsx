@@ -8,6 +8,7 @@ import { useButtonColor } from '../hooks/useButtonColor'
 import api from '../services/api'
 import { computeWeightShippingRupeesForZone, shippingZoneLabel } from '../utils/shipping'
 import Skeleton from '../components/Skeleton'
+import { resolveMediaUrl } from '../utils/apiOrigin.js'
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -737,7 +738,7 @@ function Checkout() {
                   if (!item || !item.product) return null
                   return (
                     <div key={item._id || Math.random()} className="flex items-center gap-3 pb-3 border-b border-slate-200">
-                      <img src={item.product.images?.[0] || 'https://via.placeholder.com/64'} alt={item.product.name || 'Product'} className="w-14 h-14 object-cover rounded-lg" loading="lazy" decoding="async" onError={(e) => { e.target.src = 'https://via.placeholder.com/64' }} />
+                      <img src={resolveMediaUrl(item.product.images?.[0]) || 'https://via.placeholder.com/64'} alt={item.product.name || 'Product'} className="w-14 h-14 object-cover rounded-lg" loading="lazy" decoding="async" onError={(e) => { e.target.src = 'https://via.placeholder.com/64' }} />
                       <div className="flex-grow min-w-0">
                         <p className="font-medium text-sm text-slate-900 line-clamp-1">{item.product.name || 'Product'}</p>
                         <p className="text-xs text-slate-500">Qty: {item.quantity || 0}</p>

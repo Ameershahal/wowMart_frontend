@@ -12,6 +12,7 @@ const Confetti = lazy(() => import('../components/Confetti'))
 import SEO from '../components/SEO'
 import Skeleton from '../components/Skeleton'
 import { useButtonColor } from '../hooks/useButtonColor'
+import { resolveMediaUrl } from '../utils/apiOrigin.js'
 
 // Parse stored color: "Name|#hex" or "#hex" -> { name, hex }
 function parseColorOption(entry) {
@@ -305,7 +306,7 @@ function ProductDetail() {
       <SEO
         title={`${product?.name || 'Product'} - wowmart`}
         description={product?.description || 'Discover amazing toys and gadgets for kids and teenagers.'}
-        image={product?.images?.[0] || '/images/LOGO PNG B.png'}
+        image={resolveMediaUrl(product?.images?.[0]) || '/images/LOGO PNG B.png'}
         type="product"
         product={product}
       />
@@ -333,7 +334,7 @@ function ProductDetail() {
             {/* Main Image */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden aspect-square group">
               <ImageZoom
-                src={product.images[selectedImage]}
+                src={resolveMediaUrl(product.images[selectedImage])}
                 alt={product.name}
                 className="w-full h-full object-contain"
                 loading={selectedImage === 0 ? 'eager' : 'lazy'}
@@ -365,7 +366,7 @@ function ProductDetail() {
                     }`}
                   >
                     <img
-                      src={img}
+                      src={resolveMediaUrl(img)}
                       alt={`${product.name} ${index + 1}`}
                       className="w-full h-full object-cover"
                       loading="lazy"

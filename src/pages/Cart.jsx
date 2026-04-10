@@ -5,6 +5,7 @@ import { useButtonColor } from '../hooks/useButtonColor'
 import Skeleton from '../components/Skeleton'
 import api from '../services/api'
 import { computeWeightShippingRupeesForZone, shippingZoneLabel } from '../utils/shipping'
+import { resolveMediaUrl } from '../utils/apiOrigin.js'
 
 // Row with local quantity so +/- feel instant
 function CartItemRow({ item, index, updatingId, onQuantityChange, onRemove }) {
@@ -38,7 +39,7 @@ function CartItemRow({ item, index, updatingId, onQuantityChange, onRemove }) {
       <div className="flex flex-col sm:flex-row gap-4">
         <Link to={`/products/${item.product?._id || item.product}`} className="flex-shrink-0 group">
           <img
-            src={item.product?.images?.[0] || 'https://via.placeholder.com/128'}
+            src={resolveMediaUrl(item.product?.images?.[0]) || 'https://via.placeholder.com/128'}
             alt={item.product?.name || 'Product'}
             className="w-32 h-32 object-cover rounded-lg group-hover:opacity-95"
             loading="lazy"

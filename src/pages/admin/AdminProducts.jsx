@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../services/api'
 import cache from '../../utils/cache'
+import { resolveMediaUrl } from '../../utils/apiOrigin.js'
 
 // Normalize to #RRGGBB; return null if invalid
 function normalizeHex(val) {
@@ -521,7 +522,7 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
                     <div className="flex items-center space-x-3">
                       {product.images && product.images[0] && (
                         <img
-                          src={`${product.images[0]}`}
+                          src={resolveMediaUrl(product.images[0])}
                           alt={product.name}
                           className="w-10 h-10 object-cover rounded border border-gray-200"
                         />

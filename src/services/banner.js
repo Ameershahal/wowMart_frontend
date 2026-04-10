@@ -1,6 +1,7 @@
 import axios from "axios";
+import { getApiBaseUrl } from "../utils/apiOrigin.js";
 
-const BASE_URL = "https://wow-aovo.onrender.com/api"; 
+const BASE_URL = getApiBaseUrl();
 
 /**
  * Signup API

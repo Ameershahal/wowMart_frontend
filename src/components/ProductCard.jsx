@@ -4,6 +4,7 @@ import { getCart, addToCart, updateCartItem, removeFromCart } from '../services/
 import { getWishlist, addToWishlist, removeFromWishlist } from '../services/wishlistService'
 import SuccessAnimation from './SuccessAnimation'
 import { useButtonColor } from '../hooks/useButtonColor'
+import { resolveMediaUrl } from '../utils/apiOrigin.js'
 
 let sharedCart = null
 let sharedCartPromise = null
@@ -207,7 +208,7 @@ function ProductCard({ product }) {
           {product.images && product.images.length > 1 ? (
             <img
               key={currentImageIndex}
-              src={`${product.images[currentImageIndex]}`}
+              src={resolveMediaUrl(product.images[currentImageIndex])}
               alt={`${product.name} ${currentImageIndex + 1}`}
               className="w-full h-full object-cover transition-opacity duration-300"
               loading="lazy"
@@ -215,7 +216,7 @@ function ProductCard({ product }) {
             />
           ) : (
             <img
-              src={product.images?.[0] || '/placeholder.jpg'}
+              src={resolveMediaUrl(product.images?.[0]) || '/placeholder.jpg'}
               alt={product.name}
               className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
               loading="lazy"

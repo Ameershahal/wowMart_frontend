@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useButtonColor } from '../hooks/useButtonColor'
+import { getPublicApiOrigin } from '../utils/apiOrigin'
 
 function BannerSlider({ banners = [] }) {
   const navigate = useNavigate()
@@ -25,9 +26,7 @@ function BannerSlider({ banners = [] }) {
       return imageUrl
     }
     // Otherwise, prepend the API base URL for local uploads
-    const API_BASE = import.meta.env.DEV 
-      ? 'http://localhost:5000' 
-      : 'https://wow-aovo.onrender.com'
+    const API_BASE = getPublicApiOrigin()
     return `${API_BASE}${imageUrl}`
   }
 

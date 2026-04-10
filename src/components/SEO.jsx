@@ -1,5 +1,14 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { resolveMediaUrl } from '../utils/apiOrigin.js';
+
+/** Absolute URL for og/twitter/meta (site-relative paths become full origin URLs). */
+function absoluteUrlForMeta(u) {
+  if (u == null || u === '') return `${window.location.origin}/images/LOGO PNG B.png`;
+  const s = String(u).trim();
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+  return `${window.location.origin}${s.startsWith('/') ? s : `/${s}`}`;
+}
 
 /**
  * SEO Component for dynamic meta tags and structured data
@@ -16,6 +25,8 @@ function SEO({
   const currentUrl = url || `${window.location.origin}${location.pathname}`;
   
   useEffect(() => {
+    const ogImage = absoluteUrlForMeta(resolveMediaUrl(image));
+
     // Update document title
     document.title = title;
     
@@ -37,13 +48,13 @@ function SEO({
     updateMetaTag('description', description);
     updateMetaTag('og:title', title, true);
     updateMetaTag('og:description', description, true);
-    updateMetaTag('og:image', image, true);
+    updateMetaTag('og:image', ogImage, true);
     updateMetaTag('og:type', type, true);
     updateMetaTag('og:url', currentUrl, true);
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', title);
     updateMetaTag('twitter:description', description);
-    updateMetaTag('twitter:image', image);
+    updateMetaTag('twitter:image', ogImage);
     
     // Add canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
@@ -72,7 +83,10 @@ function SEO({
         '@type': 'Product',
         name: product.name,
         description: product.description,
-        image: product.images || [image],
+        image:
+          Array.isArray(product.images) && product.images.length > 0
+            ? product.images.map((u) => absoluteUrlForMeta(resolveMediaUrl(u)))
+            : [ogImage],
         brand: product.brand ? {
           '@type': 'Brand',
           name: product.brand

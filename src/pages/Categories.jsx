@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
+import { getPublicApiOrigin } from '../utils/apiOrigin'
 import SEO from '../components/SEO'
 
 function Categories() {
@@ -10,7 +11,7 @@ function Categories() {
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return ''
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl
-    const base = import.meta.env.DEV ? 'http://localhost:5001' : 'https://wow-aovo.onrender.com'
+    const base = getPublicApiOrigin()
     return `${base}${imageUrl}`
   }
 

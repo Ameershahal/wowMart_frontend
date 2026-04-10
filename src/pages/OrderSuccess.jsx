@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getOrder } from '../services/orderService'
 import Skeleton from '../components/Skeleton'
+import { resolveMediaUrl } from '../utils/apiOrigin.js'
 
 function OrderSuccess() {
   const { orderNumber } = useParams()
@@ -94,7 +95,7 @@ function OrderSuccess() {
                 {order.items.map((item, index) => (
                   <div key={index} className="flex items-center gap-4 pb-3 border-b border-gray-300">
                     <img
-                      src={item.product.images?.[0] || 'https://via.placeholder.com/80'}
+                      src={resolveMediaUrl(item.product.images?.[0]) || 'https://via.placeholder.com/80'}
                       alt={item.product.name}
                       className="w-16 h-16 object-cover rounded-lg"
                       loading="lazy"

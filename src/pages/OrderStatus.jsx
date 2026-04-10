@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getOrder } from '../services/orderService'
 import Skeleton from '../components/Skeleton'
+import { resolveMediaUrl } from '../utils/apiOrigin.js'
 
 const STATUS_STEPS = [
   { key: 'pending', label: 'Order placed' },
@@ -168,7 +169,7 @@ function OrderStatus() {
             {order.items?.map((item, index) => (
               <div key={index} className="flex gap-4 py-3 border-b border-slate-100 last:border-0">
                 <img
-                  src={item.product?.images?.[0] || 'https://via.placeholder.com/80'}
+                  src={resolveMediaUrl(item.product?.images?.[0]) || 'https://via.placeholder.com/80'}
                   alt={item.product?.name}
                   className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
                   loading="lazy"

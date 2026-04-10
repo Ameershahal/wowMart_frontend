@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
+import { getPublicApiOrigin } from '../../utils/apiOrigin'
 
 function AdminCategories() {
   const [categories, setCategories] = useState([])
@@ -29,9 +30,7 @@ function AdminCategories() {
       return imageUrl
     }
     // Otherwise, prepend the API base URL for local uploads
-    const API_BASE = import.meta.env.DEV 
-      ? 'http://localhost:5000' 
-      : 'https://wow-aovo.onrender.com'
+    const API_BASE = getPublicApiOrigin()
     return `${API_BASE}${imageUrl}`
   }
 

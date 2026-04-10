@@ -10,6 +10,7 @@ import bannerImage from '../images/banner.jpeg'
 import bannerImage2 from '../images/banner 2.jpeg'
 import LittleVoicesSection from '../components/LittleVoicesSection'
 import TestimonialsSection from '../components/TestimonialsSection'
+import { getPublicApiOrigin, resolveMediaUrl } from '../utils/apiOrigin.js'
 
 const HOME_CACHE_KEY = 'wowmart_home_v1'
 const HOME_CACHE_MAX_AGE_MS = 12 * 60 * 1000
@@ -96,9 +97,7 @@ function Home() {
       return imageUrl
     }
     // Otherwise, prepend the API base URL for local uploads
-    const API_BASE = import.meta.env.DEV 
-      ? 'http://localhost:5000' 
-      : 'https://wow-aovo.onrender.com'
+    const API_BASE = getPublicApiOrigin()
     return `${API_BASE}${imageUrl}`
   }
 
@@ -464,7 +463,7 @@ function Home() {
                     </div>
                     {review.product && typeof review.product === 'object' && review.product.images && review.product.images[0] && (
                       <img
-                        src={review.product.images[0]}
+                        src={resolveMediaUrl(review.product.images[0])}
                         alt={review.product.name || 'Product'}
                         className="w-10 h-10 object-cover rounded-lg"
                         loading="lazy"
