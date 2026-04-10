@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getOrdersByEmail } from '../services/orderService'
+import { getOrdersByEmail, requestOrderReturn } from '../services/orderService'
 import Skeleton from '../components/Skeleton'
 
 function MyOrders() {
@@ -102,14 +102,12 @@ function MyOrders() {
 
     if (confirmed) {
       try {
-        // TODO: Add API call to backend for return request
-        // For now, just show a success message
-        alert(`Return request submitted for Order #${order.orderNumber}. Our team will contact you within 24 hours.`)
-        // You can add an API call here later:
-        // await api.post(`/orders/${order._id}/return`, { email: email })
+        await requestOrderReturn(order.orderNumber, 'Requested by customer from My Orders')
+        await fetchOrders(email)
+        alert(`Return request submitted for Order #${order.orderNumber}. Our team will contact you shortly.`)
       } catch (error) {
         console.error('Error submitting return request:', error)
-        alert('Failed to submit return request. Please contact customer support.')
+        alert(error?.response?.data?.message || 'Failed to submit return request. Please contact customer support.')
       }
     }
   }
@@ -248,15 +246,21 @@ function MyOrders() {
                         <p className="text-xs text-gray-500 mt-2">
                           {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                         </p>
-                        {isWithinReturnPeriod(order.createdAt) && order.status !== 'cancelled' && (
+                        {(order.returnRequest?.isRequested || (order.status === 'delivered' && isWithinReturnPeriod(order.createdAt))) && (
                           <div className="mt-3">
-                            <button
-                              type="button"
-                              onClick={() => handleReturnRequest(order)}
-                              className="inline-flex items-center min-h-[40px] px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 transition-colors"
-                            >
-                              Request return
-                            </button>
+                            {order.returnRequest?.isRequested ? (
+                              <span className="inline-flex items-center min-h-[40px] px-4 py-2 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 border border-amber-300 capitalize">
+                                Return {order.returnRequest?.status || 'requested'}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleReturnRequest(order)}
+                                className="inline-flex items-center min-h-[40px] px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 transition-colors"
+                              >
+                                Request return
+                              </button>
+                            )}
                             <p className="text-xs text-slate-500 mt-1.5">
                               Return window: {7 - Math.floor((new Date() - new Date(order.createdAt)) / (1000 * 60 * 60 * 24))} day(s) left
                             </p>

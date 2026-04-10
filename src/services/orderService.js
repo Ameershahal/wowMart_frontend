@@ -23,3 +23,8 @@ export const getOrder = async (orderNumber) => {
   const response = await api.get(`/orders/${orderNumber}`)
   return response.data
 }
+
+export const requestOrderReturn = async (orderNumber, reason) => {
+  const response = await api.post(`/orders/${orderNumber}/return-request`, { reason })
+  return response.data
+}

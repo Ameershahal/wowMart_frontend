@@ -10,6 +10,8 @@ function AdminOrderDetail() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [newStatus, setNewStatus] = useState('')
+  const [returnStatus, setReturnStatus] = useState('requested')
+  const [returnAdminNote, setReturnAdminNote] = useState('')
 
   useEffect(() => {
     fetchOrder()
@@ -28,6 +30,8 @@ function AdminOrderDetail() {
       console.log('[AdminOrderDetail] Order fetched:', response.data)
       setOrder(response.data)
       setNewStatus(response.data.status)
+      setReturnStatus(response.data.returnRequest?.status || 'requested')
+      setReturnAdminNote(response.data.returnRequest?.adminNote || '')
     } catch (error) {
       console.error('[AdminOrderDetail] Error fetching order:', error)
       console.error('[AdminOrderDetail] Error details:', {
@@ -66,6 +70,24 @@ function AdminOrderDetail() {
     } catch (error) {
       console.error('[AdminOrderDetail] Error updating status:', error)
       const errorMessage = error.response?.data?.message || error.message || 'Failed to update order status'
+      alert(`Error: ${errorMessage}`)
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleReturnStatusUpdate = async () => {
+    if (!id) return
+    setUpdating(true)
+    try {
+      await api.put(`/admin/orders/${id}/return-status`, {
+        status: returnStatus,
+        adminNote: returnAdminNote,
+      })
+      await fetchOrder()
+      alert('Return status updated successfully!')
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update return status'
       alert(`Error: ${errorMessage}`)
     } finally {
       setUpdating(false)
@@ -294,12 +316,24 @@ function AdminOrderDetail() {
             <h2 className="text-base font-semibold text-black mb-4">Order Summary</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
+                <span className="text-gray-600">Payment</span>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  order.paymentMethod === 'cod' ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  {order.paymentMethod === 'cod'
+                    ? 'COD'
+                    : order.paymentStatus === 'paid'
+                      ? 'Paid Online'
+                      : 'Online Pending'}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
                 <span className="font-medium text-black">₹{order.totalAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between pt-3 border-t border-gray-200">
                 <span className="font-semibold text-black">Total</span>
-                <span className="font-semibold text-lg text-black">${order.totalAmount.toFixed(2)}</span>
+                <span className="font-semibold text-lg text-black">₹{order.totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -330,6 +364,49 @@ function AdminOrderDetail() {
               <p className="text-xs text-gray-600 mb-1">Order Date</p>
               <p className="text-sm font-medium text-black">{new Date(order.createdAt).toLocaleString()}</p>
             </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+            <h2 className="text-base font-semibold text-black mb-4">Return Request</h2>
+            {order.returnRequest?.isRequested ? (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-700">
+                  Current: <span className="font-semibold capitalize">{order.returnRequest?.status || 'requested'}</span>
+                </p>
+                {order.returnRequest?.reason && (
+                  <p className="text-sm text-gray-700">
+                    Reason: <span className="font-medium">{order.returnRequest.reason}</span>
+                  </p>
+                )}
+                <select
+                  value={returnStatus}
+                  onChange={(e) => setReturnStatus(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+                >
+                  <option value="requested">Requested</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="received">Received</option>
+                  <option value="refunded">Refunded</option>
+                </select>
+                <textarea
+                  value={returnAdminNote}
+                  onChange={(e) => setReturnAdminNote(e.target.value)}
+                  placeholder="Admin note (optional)"
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+                />
+                <button
+                  onClick={handleReturnStatusUpdate}
+                  disabled={updating}
+                  className="w-full bg-black text-white px-4 py-2 rounded-md font-medium text-sm hover:bg-gray-800 transition-colors border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updating ? 'Updating...' : 'Update Return Status'}
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">No return request for this order.</p>
+            )}
           </div>
         </div>
       </div>

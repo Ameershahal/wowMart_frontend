@@ -76,6 +76,8 @@ function AdminOrders() {
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Customer</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Items</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Amount</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Payment</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Return</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Status</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Date</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600"></th>
@@ -105,6 +107,28 @@ function AdminOrders() {
                     {order.items?.length || 0} item(s)
                   </td>
                   <td className="py-3 px-4 text-sm font-medium text-black">₹{order.totalAmount.toFixed(2)}</td>
+                  <td className="py-3 px-4">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      order.paymentMethod === 'cod' ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      {order.paymentMethod === 'cod'
+                        ? 'COD'
+                        : order.paymentStatus === 'paid'
+                          ? 'Paid Online'
+                          : 'Online Pending'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    {order.returnRequest?.isRequested ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 capitalize">
+                        {order.returnRequest?.status || 'requested'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                        None
+                      </span>
+                    )}
+                  </td>
                   <td className="py-3 px-4">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                       order.status === 'delivered' ? 'bg-green-100 text-green-800' :
