@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 
 function AdminLogin() {
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -11,12 +12,17 @@ function AdminLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    const trimmedEmail = email.trim().toLowerCase()
+    if (!trimmedEmail) {
+      setError('Please enter your email')
+      return
+    }
     setLoading(true)
 
     try {
-      const response = await api.post('/admin/login', { 
-        email: 'admin@wowmart.com', // Default admin email
-        password 
+      const response = await api.post('/admin/login', {
+        email: trimmedEmail,
+        password,
       })
       
       if (response.data.success) {
@@ -41,7 +47,7 @@ function AdminLogin() {
             <span className="text-black font-bold text-xl">W</span>
           </div>
           <h1 className="text-2xl font-semibold text-black mb-1">Admin Login</h1>
-          <p className="text-xs text-gray-500">Enter your password to access the admin panel</p>
+          <p className="text-xs text-gray-500">Enter your email and password to access the admin panel</p>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
@@ -54,9 +60,13 @@ function AdminLogin() {
                 <input
                   type="email"
                   id="email"
-                  value="admin@wowmart.com"
-                  disabled
-                  className="w-full px-3 py-2 rounded-md border border-gray-300 bg-gray-100 text-sm text-gray-600 cursor-not-allowed"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="admin@example.com"
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black placeholder:text-gray-400 transition-all"
                 />
               </div>
               <div>
