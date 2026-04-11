@@ -1,6 +1,9 @@
 import api from './api'
 import cache from '../utils/cache'
 
+/** Must stay in sync with backend `PRODUCT_CATALOG_MAX` / default catalog cap (store listing). */
+const DEFAULT_CATALOG_LIMIT = 10000
+
 export const getProducts = async (filters = {}) => {
   // Create cache key from filters
   const cacheKey = `products_${JSON.stringify(filters)}`
@@ -18,7 +21,11 @@ export const getProducts = async (filters = {}) => {
   if (filters.search) params.append('search', filters.search)
   if (filters.sort) params.append('sort', filters.sort)
   if (filters.homePageSection) params.append('homePageSection', filters.homePageSection)
-  if (filters.limit) params.append('limit', filters.limit)
+  const limit =
+    filters.limit != null && filters.limit !== ''
+      ? filters.limit
+      : DEFAULT_CATALOG_LIMIT
+  params.append('limit', String(limit))
   
   const response = await api.get(`/products?${params.toString()}`)
   
