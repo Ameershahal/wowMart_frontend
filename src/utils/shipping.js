@@ -26,10 +26,13 @@ export function perKgRateForState(rates, state) {
 }
 
 export function computeWeightShippingFromKg(kg, enabled, perKgRate) {
-  const rate = Math.max(0, Number(perKgRate) || 0);
-  if (!enabled || rate <= 0) return 0;
+  if (!enabled) return 0;
   const k = Math.max(0, Number(kg) || 0);
-  return Math.round(k * rate * 100) / 100;
+  if (k === 0) return 0;
+  const rate = Math.max(0, Number(perKgRate) || 0);
+  if (rate <= 0) return 0;
+  const base = Math.round(k * rate * 100) / 100;
+  return k < 1 ? base + 60 : base;
 }
 
 export function computeWeightShippingForZone(billableKg, enabled, rates, state) {
