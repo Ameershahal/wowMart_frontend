@@ -25,20 +25,21 @@ export function perKgRateForState(rates, state) {
   return isKeralaState(state) ? k : r;
 }
 
-export function computeWeightShippingFromKg(kg, enabled, perKgRate) {
+export function computeWeightShippingFromKg(kg, enabled, perKgRate, isKerala = false) {
   if (!enabled) return 0;
   const k = Math.max(0, Number(kg) || 0);
   if (k === 0) return 0;
+  if (k <= 2) return isKerala ? 60 : 80;
   const rate = Math.max(0, Number(perKgRate) || 0);
   if (rate <= 0) return 0;
-  const base = Math.round(k * rate * 100) / 100;
-  return k < 1 ? base + 60 : base;
+  return Math.round(k * rate * 100) / 100;
 }
 
 export function computeWeightShippingForZone(billableKg, enabled, rates, state) {
   if (!enabled) return 0;
+  const kerala = isKeralaState(state);
   const rate = perKgRateForState(rates, state);
-  return computeWeightShippingFromKg(billableKg, true, rate);
+  return computeWeightShippingFromKg(billableKg, true, rate, kerala);
 }
 
 /** @deprecated use zone helpers; kept for older call sites */
