@@ -30,12 +30,22 @@ function AdminProducts() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [tableLoading, setTableLoading] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [imageFiles, setImageFiles] = useState([])
   const [imagePreview, setImagePreview] = useState([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [savingProduct, setSavingProduct] = useState(false)
+  
+  // Search and Pagination States
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalProducts, setTotalProducts] = useState(0)
+  const limit = 25
+
   // Section mapping: display name -> filter identifier
   const [sectionMapping, setSectionMapping] = useState({
     'Featured Products': 'Featured Products'
@@ -64,8 +74,21 @@ function AdminProducts() {
     colorNameInput: ''
   })
 
+  // Debounce search query changes
   useEffect(() => {
-    fetchProducts()
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+      setCurrentPage(1) // Reset to page 1 on new search
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Fetch products when page or debounced query changes
+  useEffect(() => {
+    fetchProducts(currentPage, debouncedSearch)
+  }, [currentPage, debouncedSearch])
+
+  useEffect(() => {
     fetchCategories()
     fetchSectionNames()
   }, [])
@@ -96,32 +119,27 @@ function AdminProducts() {
     }
   }
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = currentPage, search = debouncedSearch) => {
+    setTableLoading(true)
     try {
-      const pageSize = 100
-      let page = 1
-      let all = []
-      let totalPages = 1
-
-      do {
-        const response = await api.get(`/admin/products?page=${page}&limit=${pageSize}`)
-        const payload = response.data
-        if (Array.isArray(payload)) {
-          // Backward compatibility if API returns plain array
-          all = payload
-          break
-        }
+      const response = await api.get(`/admin/products?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
+      const payload = response.data
+      if (Array.isArray(payload)) {
+        // Backward compatibility if API returns plain array
+        setProducts(payload)
+        setTotalPages(1)
+        setTotalProducts(payload.length)
+      } else {
         const items = Array.isArray(payload?.items) ? payload.items : []
-        all = all.concat(items)
-        totalPages = Number(payload?.totalPages) || 1
-        page += 1
-      } while (page <= totalPages)
-
-      setProducts(all)
+        setProducts(items)
+        setTotalPages(Number(payload?.totalPages) || 1)
+        setTotalProducts(Number(payload?.total) || 0)
+      }
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
       setLoading(false)
+      setTableLoading(false)
     }
   }
 
@@ -513,7 +531,45 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
         </button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-6 relative">
+        {/* Search Bar */}
+        <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between flex-wrap gap-3">
+          <div className="relative flex-1 max-w-md w-full">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search products by name, category, or description..."
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white text-sm text-black"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-black"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="text-xs text-gray-500 font-medium">
+            Showing {products.length} of {totalProducts} products
+          </div>
+        </div>
+
+        {/* Dynamic Loading Bar */}
+        {tableLoading && (
+          <div className="absolute top-[69px] left-0 right-0 h-0.5 bg-yellow-100 overflow-hidden z-10">
+            <div className="h-full bg-yellow-400 animate-[pulse_1s_infinite]"></div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-gray-200">
@@ -529,7 +585,7 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-600"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className={tableLoading ? 'opacity-50 transition-opacity duration-150' : 'transition-opacity duration-150'}>
               {products.map((product) => (
                 <tr key={product._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="py-3 px-4">
@@ -591,9 +647,118 @@ homePageSections: [], freeShipping: true, returnDays: '30', shippingCharge: '0',
             </tbody>
           </table>
         </div>
+        
         {products.length === 0 && (
           <div className="text-center py-12">
             <p className="text-sm text-gray-600">No products found</p>
+          </div>
+        )}
+
+        {/* Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between flex-wrap gap-3">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-black bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-black bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs text-gray-700">
+                  Showing <span className="font-semibold">{Math.min(totalProducts, (currentPage - 1) * limit + 1)}</span> to{' '}
+                  <span className="font-semibold">{Math.min(totalProducts, currentPage * limit)}</span> of{' '}
+                  <span className="font-semibold">{totalProducts}</span> products
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(1)}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="First Page"
+                  >
+                    <span className="sr-only">First</span>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-xs font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Previous Page"
+                  >
+                    <span className="sr-only">Previous</span>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = currentPage;
+                    if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    if (pageNum < 1 || pageNum > totalPages) return null;
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        aria-current={currentPage === pageNum ? 'page' : undefined}
+                        className={`relative inline-flex items-center px-3.5 py-2 border text-xs font-medium transition-colors ${
+                          currentPage === pageNum
+                            ? 'z-10 bg-yellow-400 border-yellow-400 text-black font-semibold'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-xs font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Next Page"
+                  >
+                    <span className="sr-only">Next</span>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Last Page"
+                  >
+                    <span className="sr-only">Last</span>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         )}
       </div>

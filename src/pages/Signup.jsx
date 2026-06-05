@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signupService } from "../services/userService";
+import { signupService, googleLoginService } from "../services/userService";
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -14,6 +14,56 @@ function Signup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = async (response) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await googleLoginService(response.credential);
+      if (res.data && res.data.token && res.data.user) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate("/");
+      } else {
+        setError("Invalid response from server. Please try again.");
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 
+                          err.message || 
+                          "Google signup failed. Please try again.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "437877239061-59g7vhlq4m7jdf5kqpqq.apps.googleusercontent.com",
+        callback: handleGoogleSuccess,
+      });
+      window.google.accounts.id.renderButton(
+        document.getElementById("google-signup-btn"),
+        { theme: "outline", size: "large", width: "380" }
+      );
+    } else {
+      const timer = setInterval(() => {
+        if (window.google) {
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "437877239061-59g7vhlq4m7jdf5kqpqq.apps.googleusercontent.com",
+            callback: handleGoogleSuccess,
+          });
+          window.google.accounts.id.renderButton(
+            document.getElementById("google-signup-btn"),
+            { theme: "outline", size: "large", width: "380" }
+          );
+          clearInterval(timer);
+        }
+      }, 500);
+      return () => clearInterval(timer);
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -135,6 +185,17 @@ function Signup() {
             <p className="text-sm sm:text-base text-gray-600">
               Join wowmart and start shopping today
             </p>
+          </div>
+
+          {/* Google Sign In/Up Button */}
+          <div className="mb-5 flex flex-col items-center justify-center">
+            <div id="google-signup-btn" className="w-full flex justify-center min-h-[44px]"></div>
+          </div>
+          
+          <div className="relative flex py-2 items-center mb-4">
+            <div className="flex-grow border-t border-gray-200"></div>
+            <span className="flex-shrink mx-4 text-gray-400 text-xs font-semibold uppercase tracking-wider text-[10px]">Or register with email</span>
+            <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

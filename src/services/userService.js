@@ -34,3 +34,10 @@ export const saveAddressService = (addressData) => {
 export const getAddressService = () => {
   return api.get("/user/address");
 };
+
+/**
+ * Google Login API
+ */
+export const googleLoginService = (credential) => {
+  return api.post("/user/google-login", { credential });
+};

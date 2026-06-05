@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginService } from "../services/userService";
+import { loginService, googleLoginService } from "../services/userService";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -10,7 +10,58 @@ function Login() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = async (response) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await googleLoginService(response.credential);
+      if (res.data && res.data.token && res.data.user) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate("/");
+      } else {
+        setError("Invalid response from server. Please try again.");
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 
+                          err.message || 
+                          "Google login failed. Please try again.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "437877239061-59g7vhlq4m7jdf5kqpqq.apps.googleusercontent.com",
+        callback: handleGoogleSuccess,
+      });
+      window.google.accounts.id.renderButton(
+        document.getElementById("google-signin-btn"),
+        { theme: "outline", size: "large", width: "380" }
+      );
+    } else {
+      const timer = setInterval(() => {
+        if (window.google) {
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "437877239061-59g7vhlq4m7jdf5kqpqq.apps.googleusercontent.com",
+            callback: handleGoogleSuccess,
+          });
+          window.google.accounts.id.renderButton(
+            document.getElementById("google-signin-btn"),
+            { theme: "outline", size: "large", width: "380" }
+          );
+          clearInterval(timer);
+        }
+      }, 500);
+      return () => clearInterval(timer);
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -76,6 +127,17 @@ function Login() {
           <div className="text-center mb-6">
             <h1 className="font-display text-display-sm font-semibold text-slate-900 mb-1">Welcome back</h1>
             <p className="text-slate-600 text-sm">Sign in to your account</p>
+          </div>
+
+          {/* Google Sign In Button */}
+          <div className="mb-5 flex flex-col items-center justify-center">
+            <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]"></div>
+          </div>
+          
+          <div className="relative flex py-2 items-center mb-4">
+            <div className="flex-grow border-t border-slate-200"></div>
+            <span className="flex-shrink mx-4 text-slate-400 text-xs font-semibold uppercase tracking-wider text-[10px]">Or login with email</span>
+            <div className="flex-grow border-t border-slate-200"></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

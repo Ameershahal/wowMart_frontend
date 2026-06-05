@@ -9,15 +9,88 @@ function stripTrailingSlash(s) {
   return s.replace(/\/$/, '')
 }
 
-const DEFAULT_PROD_API = 'https://wow-aovo.onrender.com/api'
-const DEFAULT_DEV_API = 'http://localhost:5001/api'
+let activeApiUrl = null;
+let checkPromise = null;
+
+function formatApiUrl(url) {
+  if (!url) return '';
+  let cleaned = stripTrailingSlash(url);
+  if (!cleaned.endsWith('/api') && !cleaned.includes('/api/')) {
+    cleaned = `${cleaned}/api`;
+  }
+  return cleaned;
+}
+
+export function getFallbackDevUrl() {
+  const devUrl = 
+    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DEV_API_URL) ||
+    (typeof process !== 'undefined' && process.env && process.env.VITE_DEV_API_URL) ||
+    'http://localhost:5001/api';
+  return formatApiUrl(devUrl);
+}
 
 /** Same base used by axios in `src/services/api.js` */
 export function getApiBaseUrl() {
-  if (import.meta.env.DEV) {
-    return stripTrailingSlash(import.meta.env.VITE_DEV_API_URL || DEFAULT_DEV_API)
+  if (activeApiUrl) {
+    return activeApiUrl;
   }
-  return stripTrailingSlash(import.meta.env.VITE_API_URL || DEFAULT_PROD_API)
+  const prodUrl = 
+    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
+    (typeof process !== 'undefined' && process.env && process.env.VITE_API_URL);
+    
+  if (prodUrl) {
+    return formatApiUrl(prodUrl);
+  }
+  return getFallbackDevUrl();
+}
+
+export function setActiveApiUrl(url) {
+  activeApiUrl = formatApiUrl(url);
+}
+
+/**
+ * Checks if the production server is reachable.
+ * Resolves to the production URL if reachable, or the fallback localhost URL if unreachable.
+ */
+export async function checkProductionReachable() {
+  if (checkPromise) return checkPromise;
+
+  checkPromise = (async () => {
+    const prodUrl = getApiBaseUrl();
+    const fallbackUrl = getFallbackDevUrl();
+
+    if (prodUrl === fallbackUrl) {
+      activeApiUrl = prodUrl;
+      return prodUrl;
+    }
+
+    try {
+      const rootUrl = prodUrl.endsWith('/api') ? prodUrl.slice(0, -4) : prodUrl;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout
+
+      await fetch(rootUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        mode: 'no-cors'
+      });
+
+      clearTimeout(timeoutId);
+      activeApiUrl = prodUrl;
+      return prodUrl;
+    } catch (err) {
+      console.warn("Production backend is not reachable. Falling back to localhost/dev API.", err);
+      activeApiUrl = fallbackUrl;
+      return fallbackUrl;
+    }
+  })();
+
+  return checkPromise;
+}
+
+// Start checking immediately when the bundle loads to minimize latency
+if (typeof window !== 'undefined') {
+  checkProductionReachable();
 }
 
 /**
@@ -43,7 +116,7 @@ export function getPublicApiOrigin() {
     const parsed = new URL(base.startsWith('http') ? base : `https://${base}`)
     return `${parsed.protocol}//${parsed.host}`
   } catch {
-    return import.meta.env.DEV ? 'http://localhost:5001' : 'https://wow-aovo.onrender.com'
+    return base;
   }
 }
 

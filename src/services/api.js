@@ -1,19 +1,30 @@
 import axios from "axios";
-import { getApiBaseUrl } from "../utils/apiOrigin.js";
+import { getApiBaseUrl, checkProductionReachable, setActiveApiUrl } from "../utils/apiOrigin.js";
 
 const API_BASE_URL = getApiBaseUrl();
+let isProductionChecked = false;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-
 });
 
-// Attach token from localStorage automatically (user or admin)
+// Attach token from localStorage automatically (user or admin) and resolve backend availability
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // 1. Ensure production reachability check has resolved
+    try {
+      const resolvedUrl = await checkProductionReachable();
+      setActiveApiUrl(resolvedUrl);
+      api.defaults.baseURL = resolvedUrl;
+      config.baseURL = resolvedUrl;
+    } catch (err) {
+      console.error("Error resolving API base URL:", err);
+    }
+
+    // 2. Attach Authorization token
     try {
       // Check if this is an admin route
       const isAdminRoute = config.url?.startsWith('/admin');

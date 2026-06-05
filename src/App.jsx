@@ -30,6 +30,7 @@ const Policy = lazy(() => import('./pages/Policy'))
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'))
+const AdminFeatured = lazy(() => import('./pages/admin/AdminFeatured'))
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
 const AdminOrderDetail = lazy(() => import('./pages/admin/AdminOrderDetail'))
 const AdminBanners = lazy(() => import('./pages/admin/AdminBanners'))
@@ -88,6 +89,7 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />
           <Route path="/admin/products" element={<AdminRoute><AdminLayout><AdminProducts /></AdminLayout></AdminRoute>} />
+          <Route path="/admin/featured" element={<AdminRoute><AdminLayout><AdminFeatured /></AdminLayout></AdminRoute>} />
           <Route path="/admin/orders" element={<AdminRoute><AdminLayout><AdminOrders /></AdminLayout></AdminRoute>} />
           <Route path="/admin/orders/:id" element={<AdminRoute><AdminLayout><AdminOrderDetail /></AdminLayout></AdminRoute>} />
           <Route path="/admin/banners" element={<AdminRoute><AdminLayout><AdminBanners /></AdminLayout></AdminRoute>} />
